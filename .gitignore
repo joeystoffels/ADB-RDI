@@ -5,3 +5,7 @@
 /out
 /auxil
 *.cdb
+
+
+/files/database/OdiseeDB.sql
+/mssql_data/
