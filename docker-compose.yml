@@ -1,0 +1,12 @@
+version: '3.2'
+services:
+  adb-rdi-casus:
+    image: microsoft/mssql-server-linux:latest
+    ports:
+      - "1433:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=yourStrong(!)Password
+      - MSSQL_PID=Developer
+    volumes:
+      - ./mssql_data:/var/opt/mssql
