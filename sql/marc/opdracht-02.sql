@@ -5,17 +5,19 @@
 */
 
 -- VERSIE 1
-SELECT Year(P.purchase_date)  AS Year,
-       Month(P.purchase_date) AS Month,
-       Count(*)               AS ItemsPerMonth,
-       CONVERT(DECIMAL(4, 2), ( 100 / (SELECT CONVERT(DECIMAL(4, 2), Count(*))
-                                       FROM   Purchase P
-                                              JOIN [User] AS U
-                                                ON P.email_address =
-                                                   U.email_address
-                                       WHERE  U.country_name = 'The Netherlands'
-                                      ) )) *
-       Count(*)               AS PercentageOfTotal
+SELECT Year(P.purchase_date)                          AS Year,
+       Month(P.purchase_date)                         AS Month,
+       Count(*)                                       AS ItemsPerMonth,
+       CONCAT(CONVERT(DECIMAL(4, 2),
+           ( 100 / (SELECT CONVERT(DECIMAL(4, 2),
+                           Count(*))
+                    FROM   Purchase P
+                           JOIN [User] AS U
+                             ON P.email_address =
+                                U.email_address
+                    WHERE  U.country_name =
+                           'The Netherlands'
+                   ) )) * Count(*), '%')              AS PercentageOfTotal
 FROM   Purchase P
        JOIN [User] AS U
          ON P.email_address = U.email_address
