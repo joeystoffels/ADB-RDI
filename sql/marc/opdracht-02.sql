@@ -1,0 +1,2 @@
+-- 2.	Geef het statement dat per land het maandgebruik over 12 maanden geeft 
+--      met daarbij het percentage dat die maand uitmaakt van het totaal van die 12 maanden.
