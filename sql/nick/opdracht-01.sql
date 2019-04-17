@@ -13,27 +13,31 @@
 
 
 DECLARE
-    @MovieInReeks INT = 207992;
---     @MovieInReeks INT = 207989;
+--     @MovieInReeks INT = 207992;
+    @MovieInReeks INT = 207989;
 --     @MovieInReeks INT = 207991;
+
 ;
 WITH MovieSeries(ITEM_ID, TITLE, Volgnummer)
          AS
          (
-             -- Get movie
              SELECT Movie.product_id, Movie.title, 1
              FROM Product AS Movie
              WHERE Movie.product_id = @MovieInReeks
+
              UNION ALL
-             -- Get next parts of the movie series
-             SELECT NextMovie.product_id, NextMovie.title, ParentMovie.Volgnummer + 1
+
+             SELECT NextMovie.product_id, NextMovie.title, ChildMovies.Volgnummer + 1
              FROM Product AS NextMovie
-                      INNER JOIN MovieSeries AS ParentMovie ON NextMovie.previous_product_id = ParentMovie.ITEM_ID
-                  -- Get the previous parts of the movie series
---              UNION ALL
---              SELECT PreviousMovie.product_id, PreviousMovie.title, ChildMovie.Volgnummer - 1
---              FROM Product AS PreviousMovie
---                       INNER JOIN MovieSeries AS ChildMovie ON PreviousMovie.product_id = ChildMovie.
+                      INNER JOIN MovieSeries AS ChildMovies ON NextMovie.previous_product_id = ChildMovies.ITEM_ID
+
+             UNION ALL
+
+             SELECT PreviousMovie.product_id, PreviousMovie.title, 100
+             FROM Product AS PreviousMovie
+                 FULL JOIN Product AS Parent ON Parent.product_id = PreviousMovie.previous_product_id
+
+
          )
 SELECT *
 FROM MovieSeries
@@ -42,46 +46,70 @@ FROM MovieSeries
 ----------------------------------
 -- Optie 2:
 ----------------------------------
+CREATE TABLE #MovieSeries
+(
+    ITEM_ID    int NOT NULL,
+    TITLE      varchar(255),
+    Volgnummer int,
+)
 
 DECLARE
- --   @MovieInReeks INT = 207992;
- --    @MovieInReeks INT = 207989;
-     @MovieInReeks INT = 207991;
+    @MovieInReeks INT = 207989;
+DECLARE
+    @previous_movie INT = @MovieInReeks;
+DECLARE
+    @next_movie INT = @MovieInReeks;
+DECLARE
+    @count INT = 0;
 
-DECLARE @PreviousMovieInReeks INT = @MovieInReeks;
-DECLARE previous_movie_cursor CURSOR FOR
-        SELECT *
-        FROM Product
-        --WHERE previous_product_id = @PreviousMovieInReeks
+INSERT INTO #MovieSeries (ITEM_ID, TITLE, Volgnummer)
+SELECT product_id, title, @count
+FROM Product
+WHERE product_id = @MovieInReeks
 
-OPEN previous_movie_cursor
-WHILE @@FETCH_STATUS = 0  
-BEGIN  
-   -- This is executed as long as the previous fetch succeeds.  
-   FETCH NEXT FROM previous_movie_cursor;  
-END  
-  
-CLOSE previous_movie_cursor;  
-DEALLOCATE previous_movie_cursor;  
-------------------------------------------------------
 
-DECLARE contact_cursor CURSOR FOR  
-SELECT * FROM Product  
-WHERE title LIKE 'B%'  
-ORDER BY title;  
-  
-OPEN contact_cursor;  
-  
--- Perform the first fetch.  
-FETCH NEXT FROM contact_cursor;  
-  
--- Check @@FETCH_STATUS to see if there are any more rows to fetch.  
-WHILE @@FETCH_STATUS = 0  
-BEGIN  
-   -- This is executed as long as the previous fetch succeeds.  
-   FETCH FROM contact_cursor;  
-END  
-  
-CLOSE contact_cursor;  
-DEALLOCATE contact_cursor;  
-GO  
+WHILE @previous_movie IS NOT NULL
+BEGIN
+    PRINT @previous_movie
+    SET @previous_movie =
+            (
+                SELECT Parent.product_id
+                FROM Product AS Parent
+                         FULL JOIN Product AS Child ON Child.previous_product_id = Parent.product_id
+                WHERE Child.product_id = @previous_movie
+            )
+    IF @previous_movie IS NOT NULL
+        SET @count = @count - 1
+    INSERT INTO #MovieSeries (ITEM_ID, TITLE, Volgnummer)
+    SELECT product_id, title, @count
+    FROM Product
+    WHERE product_id = @previous_movie
+END
+
+SET @count = 0;
+WHILE @next_movie IS NOT NULL
+BEGIN
+    SET @next_movie =
+            (
+                SELECT product_id
+                FROM Product
+                WHERE previous_product_id = @next_movie
+            )
+    IF @next_movie IS NOT NULL
+        SET @count = @count + 1
+    INSERT INTO #MovieSeries (ITEM_ID, TITLE, Volgnummer)
+    SELECT product_id, title, @count
+    FROM Product
+    WHERE product_id = @next_movie
+END
+
+SELECT ITEM_ID,
+       TITLE,
+       Row_number()
+               OVER (
+                   ORDER BY Volgnummer ASC) AS Volgnummer
+FROM #MovieSeries
+ORDER BY Volgnummer
+
+DROP TABLE #MovieSeries;
+GO
