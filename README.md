@@ -106,3 +106,12 @@ Week 21: 20 mei t/m 26 mei 2019
 Week 16: 15 april t/m 21 april 2019
 
 
+
+Joey:
+Wk 17/18/19 werken aan casus en onderzoek (+extra vrij opnemen v/h werk)
+Wk 20/21 op de zaterdagen bezet ivm vliegen
+Wk 20 zondag afronden '80% versie' onderzoek
+Wk 21 zondag afronden casus opdrachten
+
+
+
