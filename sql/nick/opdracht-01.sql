@@ -18,29 +18,28 @@ DECLARE
 --     @MovieInReeks INT = 207991;
 
 ;
-WITH MovieSeries(ITEM_ID, TITLE, Volgnummer)
+WITH MovieSeries(ITEM_ID, TITLE, Volgnummer, previous)
          AS
          (
-             SELECT Movie.product_id, Movie.title, 1
+             SELECT Movie.product_id, Movie.title, 1, Movie.previous_product_id
              FROM Product AS Movie
              WHERE Movie.product_id = @MovieInReeks
 
+             UNION
+
+              SELECT Movie.product_id, Movie.title, 1, Movie.previous_product_id
+             FROM Product AS Movie
+              WHERE Movie.previous_product_id = @MovieInReeks
+
              UNION ALL
 
-             SELECT NextMovie.product_id, NextMovie.title, ChildMovies.Volgnummer + 1
+             SELECT  NextMovie.product_id, NextMovie.title, ChildMovies.Volgnummer + 1, NextMovie.previous_product_id
              FROM Product AS NextMovie
-                      INNER JOIN MovieSeries AS ChildMovies ON NextMovie.previous_product_id = ChildMovies.ITEM_ID
-
-             UNION ALL
-
-             SELECT PreviousMovie.product_id, PreviousMovie.title, 100
-             FROM Product AS PreviousMovie
-                 FULL JOIN Product AS Parent ON Parent.product_id = PreviousMovie.previous_product_id
-
-
+                      INNER JOIN MovieSeries AS ChildMovies ON NextMovie.product_id = ChildMovies.ITEM_ID
          )
 SELECT *
 FROM MovieSeries
+
 
 
 ----------------------------------
