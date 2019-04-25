@@ -5,8 +5,31 @@
  rijen zijn verdeeld.
  */
 
-SELECT DISTINCT P.title AS FilmTitel
-	,AVG(RC.score) OVER (PARTITION BY RC.product_id) AS Mediaan
-FROM Review_Category RC
-JOIN Product P ON P.product_id = RC.product_id
+;
+
+WITH MediaanCTE
+AS (
+	SELECT DISTINCT P.title AS FilmTitel
+		,AVG(RC.score) OVER (PARTITION BY RC.product_id) AS Mediaan
+	FROM Review_Category RC
+	INNER JOIN Product P ON P.product_id = RC.product_id
+	)
+	,RankCTE
+AS (
+	SELECT FilmTitel
+		,DENSE_RANK() OVER (
+			ORDER BY Mediaan DESC
+				,FilmTitel
+			) AS Rank
+	FROM MediaanCTE
+	)
+SELECT c.FilmTitel
+	,c.Mediaan
+	,DENSE_RANK() OVER (
+		ORDER BY c.Mediaan DESC
+			,C.FilmTitel
+		) AS Rank
+FROM MediaanCTE c
+INNER JOIN RankCTE r ON c.FilmTitel = r.FilmTitel
+WHERE Rank <= 10
 ORDER BY Mediaan DESC
