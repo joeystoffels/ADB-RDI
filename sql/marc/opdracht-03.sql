@@ -10,7 +10,7 @@
 WITH MediaanCTE
 AS (
 	SELECT DISTINCT P.title AS FilmTitel
-		,AVG(RC.score) OVER (PARTITION BY RC.product_id) AS Mediaan
+		,AVG(CAST(RC.score AS DECIMAL(3, 1))) OVER (PARTITION BY RC.product_id) AS Mediaan
 	FROM Review_Category RC
 	INNER JOIN Product P ON P.product_id = RC.product_id
 	)
