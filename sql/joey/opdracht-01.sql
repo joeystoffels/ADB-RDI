@@ -1,11 +1,13 @@
-USE odisee
+-- Opdracht 1
+USE ODISEE;
+GO
 
-DECLARE @MovieInReeks INT = 207989;
+DECLARE @MovieInReeks INT = 207989
 
-WITH children AS (
-    SELECT p.*
-    FROM Product p
-    WHERE p.product_id = @MovieInReeks
+;WITH children AS (
+    SELECT P.*
+    FROM Product P
+    WHERE P.product_id = @MovieInReeks
 
     UNION ALL
 
@@ -33,3 +35,4 @@ FROM (
     UNION
     SELECT *
     FROM parents) as result;
+GO
