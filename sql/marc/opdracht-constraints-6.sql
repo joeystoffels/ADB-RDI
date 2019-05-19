@@ -9,4 +9,59 @@
 
 	6) Genres voor films en spellen zijn verschillend, deze mogen niet bij het verkeerde media-item gebruikt worden. 
 	   Hetzelfde geld voor Review aspecten.
+
+	 Genres Game:
+
+	 - Action
+	 - Action-Adventure
+	 - Adventure
+	 - MMO
+	 - Role-playing
+	 - Simulation
+	 - Strategy
+
+	 Genres Movie:
+
+	 - Action
+	 - Adult
+	 - Adventure
+	 - Animation
+	 - Comedy
+	 - Crime
+	 - Documentary
+	 - Drama
+	 - Family
+	 - Fantasy
+	 - Film-Noir
+	 - Horror
+	 - Music
+	 - Musical
+	 - Mystery
+	 - Romance
+	 - Sci-Fi
+	 - Short
+	 - Thriller
+	 - War
+	 - Western
+
+	 Review aspecten Game
+	 
+	 Review aspecten Movie
 */
+
+-- Film toevoegen, met gebruikmaking genre voor film
+-- Film toevoegen met gebruikmakng genre voor game, resulteert in foutmelding
+-- Game toevoegen met gebruikmaking genre voor game
+-- Game toevoegen met gebruikmaking genre voor film, resulteert in foutmelding
+-- Game toevoegen met gebruikmaking genre voor film en game
+-- Film toevoegen met gebruikmaking genre voor film en game
+-- Genre toevoegen voor film
+-- Genre toevoegen voor game
+-- Film updaten, met gebruikmaking genre voor film
+-- Film updaten met gebruikmakng genre voor game, resulteert in foutmelding
+-- Game updaten met gebruikmaking genre voor game
+-- Game updaten met gebruikmaking genre voor film, resulteert in foutmelding
+-- Game updaten met gebruikmaking genre voor film en game
+-- Film updaten met gebruikmaking genre voor film en game
+-- Genre updaten voor film
+-- Genre updaten voor game
