@@ -23,7 +23,7 @@ GO
 -- Trigger voor het inserten van een Product
 DROP TRIGGER IF EXISTS trgProductInsert
 GO
-CREATE OR ALTER TRIGGER trgProductInsert
+CREATE TRIGGER trgProductInsert
 ON Product
 AFTER INSERT
 AS
@@ -50,7 +50,7 @@ GO
 -- Trigger voor het verwijderen van een Product
 DROP TRIGGER IF EXISTS trgProductDelete
 GO
-CREATE OR ALTER TRIGGER trgProductDelete
+CREATE TRIGGER trgProductDelete
 ON Product
 AFTER DELETE
 AS
@@ -67,7 +67,7 @@ BEGIN
 -- Trigger voor het verwijderen van een Product_Genre
 DROP TRIGGER IF EXISTS trgProductGenreDelete
 GO
-CREATE OR ALTER TRIGGER trgProductGenreDelete
+CREATE TRIGGER trgProductGenreDelete
 ON Product_Genre
 AFTER DELETE
 AS
@@ -106,7 +106,7 @@ GO
 -- Trigger voor het inserten van een Product_Genre
 DROP TRIGGER IF EXISTS trgProductGenreInsert
 GO
-CREATE OR ALTER TRIGGER trgProductGenreInsert
+CREATE TRIGGER trgProductGenreInsert
 ON Product_Genre
 AFTER INSERT
 AS
