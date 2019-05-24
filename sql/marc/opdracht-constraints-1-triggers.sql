@@ -33,7 +33,14 @@ BEGIN
 
 	SET NOCOUNT ON;
 
-	DECLARE @PRID ID = (SELECT DISTINCT product_id FROM inserted);
+	BEGIN TRY
+		DECLARE @PRID ID = (SELECT DISTINCT product_id FROM inserted);
+	END TRY
+	BEGIN CATCH
+		RAISERROR('Het is niet mogelijk om meerdere producten in één statement toe te voegen.', 16, 1);
+		ROLLBACK TRANSACTION;
+		RETURN;
+	END CATCH;
 	
 	IF NOT EXISTS (
 		SELECT *
@@ -116,7 +123,14 @@ BEGIN
 
 	SET NOCOUNT ON;
 
+	BEGIN TRY
 	DECLARE @PRID ID = (SELECT DISTINCT product_id FROM inserted)
+	END TRY
+	BEGIN CATCH
+		RAISERROR('Het is niet mogelijk om meerdere genres in één statement toe te voegen.', 16, 1);
+		ROLLBACK TRANSACTION;
+		RETURN;
+	END CATCH;
 
 	-- Foutmelding gooien wanneer genre niet aan bestaand product gekoppeld kan worden
 	IF NOT EXISTS (
