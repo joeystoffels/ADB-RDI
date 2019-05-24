@@ -1,5 +1,7 @@
 /*
  Constraint 1. Een film of spel hoort altijd bij minimaal één genre.
+
+ Uitwerking Triggers
 */
 
 
