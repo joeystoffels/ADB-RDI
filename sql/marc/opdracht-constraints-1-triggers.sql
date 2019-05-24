@@ -2,10 +2,12 @@
  Constraint 1. Een film of spel hoort altijd bij minimaal één genre.
 */
 
+
 -- Droppen van Foreign Key constraint welke in de weg zit.
 ALTER TABLE Product_Genre
 DROP CONSTRAINT IF EXISTS FK_PRODUCT__PRODUCT_G_PRODUCT
 GO
+
 
 -- Extra genre toegevoegd welke wordt toegekend aan een nieuw Product
 IF NOT EXISTS (SELECT * 
@@ -16,6 +18,7 @@ BEGIN
 	VALUES ('No genre allocated')
 ;END
 GO
+
 
 -- Trigger voor het inserten van een Product
 DROP TRIGGER IF EXISTS trgProductInsert
@@ -43,6 +46,7 @@ BEGIN
 END
 GO
 
+
 -- Trigger voor het verwijderen van een Product
 DROP TRIGGER IF EXISTS trgProductDelete
 GO
@@ -58,6 +62,7 @@ BEGIN
 	WHERE product_id IN (SELECT product_id FROM deleted)
 
 ;END
+
 
 -- Trigger voor het verwijderen van een Product_Genre
 DROP TRIGGER IF EXISTS trgProductGenreDelete
@@ -96,6 +101,7 @@ BEGIN
 
 END
 GO
+
 
 -- Trigger voor het inserten van een Product_Genre
 DROP TRIGGER IF EXISTS trgProductGenreInsert
@@ -143,18 +149,17 @@ GO
 
 	Testscenario's:
 
-	- Insert product zonder genre														|X|
-	- Insert product met één genre														|X|
-	- Insert product met twee genres													|X|
-	- Insert genre met verwijzing naar bestaand product									|X|
-	- Insert genre met verwijzing naar niet-bestaand product							|X|
-	- Insert twee producten zonder genre												|X|
-	- Insert twee producten met één genre												|X|
-	- Insert twee producten met twee genres												|X|
-	- Verwijder genre van product (standaard genre 'No genre allocated' terugplaatsen)	|X|
-	- Verwijderen product verwijderd ook bijbehorende genres							|X|
-	- Update product_id in Product_Genre, wijzigt eveneens product_id in Product		||
-	- Update product_id in Product, wijzigt eveens product_id in Product_Genre			||
+	|X| Insert product zonder genre
+	|X| Insert product met één genre
+	|X| Insert product met twee genres
+	|X| Insert genre met verwijzing naar bestaand product
+	|X| Insert twee genres met verwijzing naar bestaand product
+	|X| Insert genre met verwijzing naar niet-bestaand product
+	|X| Insert twee producten zonder genre
+	|X| Insert twee producten met één genre
+	|X| Insert twee producten met twee genres
+	|X| Verwijder genre van product (standaard genre 'No genre allocated' terugplaatsen)
+	|X| Verwijderen product verwijderd ook bijbehorende genres
 
 */
 
@@ -182,6 +187,7 @@ DELETE FROM Product
 WHERE title = 'Movie zonder genre'
 GO
 
+
 -- Insert product met één genre
 BEGIN TRANSACTION
 
@@ -206,6 +212,7 @@ GO
 DELETE FROM Product
 WHERE product_id=(SELECT product_id FROM Product WHERE title = 'Movie met één genre')
 GO
+
 
 -- Insert product met twee genres
 BEGIN TRANSACTION
@@ -232,6 +239,7 @@ DELETE FROM Product
 WHERE product_id IN (SELECT product_id FROM Product WHERE title = 'Movie met twee genres')
 GO
 
+
 -- Insert genre met verwijzing naar bestaand product
 BEGIN TRANSACTION
 
@@ -257,6 +265,33 @@ WHERE product_id = ((SELECT MAX(p.product_id) FROM Product AS p WHERE p.product_
 	AND genre_name = 'Action'
 GO
 
+
+-- Insert twee genres met verwijzing naar bestaand product
+BEGIN TRANSACTION
+
+DECLARE @PRID ID = (SELECT MAX(p.product_id) FROM Product AS p WHERE p.product_type = 'Movie' 
+	AND (SELECT COUNT(*) FROM Product_Genre pg WHERE p.product_id=pg.product_id) > 1);
+
+INSERT INTO Product_Genre
+VALUES (@PRID, 'Action'), (@PRID, 'Documentary')
+
+SELECT p.title, pg.genre_name 
+FROM Product AS p
+	INNER JOIN Product_Genre AS pg 
+		ON p.product_id=pg.product_id 
+WHERE p.product_id=@PRID;
+
+COMMIT TRANSACTION
+GO
+
+-- Opruimen van testdata
+DELETE FROM Product_Genre
+WHERE product_id = ((SELECT MAX(p.product_id) FROM Product AS p WHERE p.product_type = 'Movie' 
+	AND (SELECT COUNT(*) FROM Product_Genre pg WHERE p.product_id=pg.product_id) > 1)) 
+	AND (genre_name = 'Action' OR genre_name = 'Documentary')
+GO
+
+
 -- Insert genre met verwijzing naar niet-bestaand product, gooit foutmelding:
 -- 'Er bestaat geen product bij deze genre. Genre kan niet worden toegevoegd'
 BEGIN TRANSACTION
@@ -268,6 +303,7 @@ VALUES (@PRID, 'Action')
 
 COMMIT TRANSACTION
 GO
+
 
 -- Insert twee producten zonder genre
 BEGIN TRANSACTION
@@ -299,6 +335,7 @@ GO
 DELETE FROM Product
 WHERE title = 'Movie 1/2 zonder genre' OR title = 'Movie 2/2 zonder genre'
 GO
+
 
 -- Insert twee producten met één genre
 BEGIN TRANSACTION
@@ -343,6 +380,7 @@ DELETE FROM Product
 WHERE title = 'Movie 1/2 met één genre' OR title = 'Movie 2/2 met één genre'
 GO
 
+
 -- Insert twee producten met twee genres
 BEGIN TRANSACTION
 
@@ -385,6 +423,7 @@ GO
 DELETE FROM Product
 WHERE title = 'Movie 1/2 met twee genres' OR title = 'Movie 2/2 met twee genres'
 GO
+
 
 -- Verwijder genre van product (standaard genre 'No genre allocated' terugplaatsen)
 BEGIN TRANSACTION
