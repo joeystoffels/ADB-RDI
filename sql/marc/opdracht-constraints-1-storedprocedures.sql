@@ -32,14 +32,18 @@ BEGIN
 GO
 
 -- Bij het toevoegen van een product, worden de genres als Table Valued Parameter meegegeven 
+DROP PROCEDURE IF EXISTS spProductInsert
+GO
+DROP PROCEDURE IF EXISTS spProductGenreInsert
+GO
+DROP PROCEDURE IF EXISTS spProductGenreDelete
+GO
 DROP TYPE IF EXISTS GenreTableType
 GO
 CREATE TYPE GenreTableType AS TABLE (genre_name GENRE PRIMARY KEY)
 GO
 
 -- Stored procedure om product toe te kunnen voegen, bevat t.b.v. demo alleen verplichte velden (geen, één en twee genres)
-DROP PROCEDURE IF EXISTS spProductInsert
-GO
 CREATE PROCEDURE spProductInsert (@product_type TYPE, @title TITLE, @price PRICE, @genres GenreTableType READONLY)
 AS
 BEGIN
@@ -61,11 +65,9 @@ BEGIN
 	FROM @genres
 
 ;END
-
+GO
 
 -- Stored procedure om genre toe te voegen aan bestaand product (één, twee), foutmelding bij onbestaand product
-DROP PROCEDURE IF EXISTS spProductGenreInsert
-GO
 CREATE PROCEDURE spProductGenreInsert (@product_id ID, @genres GenreTableType READONLY)
 AS
 BEGIN
@@ -98,11 +100,9 @@ BEGIN
 	END;
 
 ;END
-
+GO
 
 -- Stored procedure om genre te verwijderen
-DROP PROCEDURE IF EXISTS spProductGenreDelete
-GO
 CREATE PROCEDURE spProductGenreDelete (@product_id ID, @genres GenreTableType READONLY)
 AS
 BEGIN
@@ -149,8 +149,8 @@ BEGIN
 	|X| Insert twee producten zonder genre (spProductInsert)
 	|X| Insert twee producten met één genre (spProductInsert)
 	|X| Insert twee producten met twee genres (spProductInsert)
-	|X| Verwijder genre van product (standaard genre 'No genre allocated' terugplaatsen)
-	|X| Verwijder meerdere genres van product (standaard genre 'No genre allocated' terugplaatsen)
+	|X| Verwijder genre van product (standaard genre 'No genre allocated' terugplaatsen) (spProductGenreDelete)
+	|X| Verwijder meerdere genres van product (standaard genre 'No genre allocated' terugplaatsen) (spProductGenreDelete)
 
 */
 
@@ -314,7 +314,7 @@ WHERE product_id IN (SELECT product_id FROM Product_Genre WHERE product_id = (SE
 GO
 
 
--- Insert genre met verwijzing naar bestaand product
+-- Insert genre met verwijzing naar niet-bestaand product
 BEGIN TRANSACTION
 
 DECLARE @GenreTableType GenreTableType
@@ -323,6 +323,7 @@ DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
 INSERT INTO @GenreTableType
 VALUES ('Action')
 
+PRINT 'Hier verwachten we een foutmelding.';
 EXEC spProductGenreInsert @PRID, @GenreTableType
 
 COMMIT TRANSACTION
