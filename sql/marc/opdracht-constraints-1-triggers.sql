@@ -159,7 +159,6 @@ GO
 	|X| Insert twee producten met één genre
 	|X| Insert twee producten met twee genres
 	|X| Verwijder genre van product (standaard genre 'No genre allocated' terugplaatsen)
-	|X| Verwijderen product verwijderd ook bijbehorende genres
 
 */
 
