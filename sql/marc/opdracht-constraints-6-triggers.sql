@@ -122,13 +122,12 @@ GO
 	|X| Insert twee producten (movie) met twee geldige genres
 	|X| Insert twee producten (game) met één geldige genre
 	|X| Insert twee producten (game) met twee geldige genres
-	|| Update product (movie) met een geldige genre
-	|| Update product (movie) met een ongeldige genre
-	|| Update product (game) met een geldige genre
-	|| Update product (game) met een ongeldige genre
+	|X| Update product (movie) met een geldige genre
+	|X| Update product (movie) met een ongeldige genre
+	|X| Update product (game) met een geldige genre
+	|X| Update product (game) met een ongeldige genre
 
 */
-
 
 
 -- Insert product zonder genre (krijgt standaard genre 'No genre allocated' toegekend)
@@ -435,4 +434,97 @@ GO
 
 DELETE FROM Product
 WHERE product_id IN (SELECT product_id FROM Product WHERE title = 'Game met twee geldige genres (1/2)' OR title = 'Game met twee geldige genres (2/2)')
+GO
+
+
+-- Update product (movie) met een geldige genre
+BEGIN TRANSACTION
+
+DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
+
+INSERT INTO Product (product_id, product_type, title, movie_default_price)
+VALUES (@PRID, 'Movie', 'Movie updaten van genre(1)', 3.50)
+
+INSERT INTO Product_Genre
+VALUES (@PRID, 'Adventure')
+
+SELECT * FROM Product_Genre WHERE product_id = @PRID
+
+UPDATE Product_Genre
+SET genre_name = 'Horror'
+WHERE product_id = @PRID
+
+SELECT * FROM Product_Genre WHERE product_id = @PRID
+
+ROLLBACK TRANSACTION
+GO
+
+
+-- Update product (movie) met een ongeldige genre
+BEGIN TRANSACTION
+
+DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
+
+INSERT INTO Product (product_id, product_type, title, movie_default_price)
+VALUES (@PRID, 'Movie', 'Movie updaten van genre(1)', 3.50)
+
+INSERT INTO Product_Genre
+VALUES (@PRID, 'Romance')
+
+SELECT * FROM Product_Genre WHERE product_id = @PRID
+
+PRINT 'Hier verwachten we een foutmelding'
+UPDATE Product_Genre
+SET genre_name = 'Action-Adventure'
+WHERE product_id = @PRID
+
+SELECT * FROM Product_Genre WHERE product_id = @PRID
+
+ROLLBACK TRANSACTION
+GO
+
+
+-- Update product (game) met een geldige genre
+BEGIN TRANSACTION
+
+DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
+
+INSERT INTO Product (product_id, product_type, title, movie_default_price)
+VALUES (@PRID, 'Game', 'Game updaten van genre(1)', 3.50)
+
+INSERT INTO Product_Genre
+VALUES (@PRID, 'Action-Adventure')
+
+SELECT * FROM Product_Genre WHERE product_id = @PRID
+
+UPDATE Product_Genre
+SET genre_name = 'Simulation'
+WHERE product_id = @PRID
+
+SELECT * FROM Product_Genre WHERE product_id = @PRID
+
+ROLLBACK TRANSACTION
+GO
+
+-- Update product (game) met een ongeldige genre
+BEGIN TRANSACTION
+
+DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
+
+INSERT INTO Product (product_id, product_type, title, movie_default_price)
+VALUES (@PRID, 'Game', 'Game updaten van genre(1)', 3.50)
+
+INSERT INTO Product_Genre
+VALUES (@PRID, 'Action-Adventure')
+
+SELECT * FROM Product_Genre WHERE product_id = @PRID
+
+PRINT  'Hier verwachten we een foutmelding'
+UPDATE Product_Genre
+SET genre_name = 'Romance'
+WHERE product_id = @PRID
+
+SELECT * FROM Product_Genre WHERE product_id = @PRID
+
+ROLLBACK TRANSACTION
 GO
