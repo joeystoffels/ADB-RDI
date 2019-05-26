@@ -1,0 +1,3 @@
+-- Constraint 3:
+-- Het kan natuurlijk gebeuren dat iemand meerdere abonnementsperiodes heeft.
+-- Dan kunnen de verschillende abonnementsperiodes van een persoon niet overlappen.
