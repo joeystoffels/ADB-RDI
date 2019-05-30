@@ -1,50 +1,9 @@
--- OPDRACHT 01
--- Geef van een film, de hele reeks waar die bij hoort met volgnummer en in de juiste volgorde.
--- Indien hij niet in een reeks zit, is de lijst gewoon één lang met volgnummer 1.
--- Dit moet één statement worden die van een variabel ID de reeks geeft zoals onderstaand voorbeeld:
--- DECLARE @MovieInReeks INT = 207989;
--- jouw statement hier levert onderstaand resultaat:
---
--- ITEM_ID		TITLE				Volgnummer
--- 207992		Matrix, The				1
--- 207989		Matrix Reloaded, The	2
--- 207991		Matrix Revolutions, The	3
+USE ODISEE;
+GO
 
-DECLARE
---     @MovieInReeks INT = 207992;
-@MovieInReeks INT= 207989;
---     @MovieInReeks INT = 207991;
+SET STATISTICS TIME ON;
+SET STATISTICS IO ON;
 
-WITH MovieSeries(ITEM_ID, 
-                 TITLE, 
-                 Volgnummer, 
-                 previous)
-     AS (SELECT Movie.product_id, 
-                Movie.title, 
-                1, 
-                Movie.previous_product_id
-         FROM Product AS Movie
-         WHERE Movie.product_id = @MovieInReeks
-         UNION
-         SELECT Movie.product_id, 
-                Movie.title, 
-                1, 
-                Movie.previous_product_id
-         FROM Product AS Movie
-         WHERE Movie.previous_product_id = @MovieInReeks
-         UNION ALL
-         SELECT NextMovie.product_id, 
-                NextMovie.title, 
-                ChildMovies.Volgnummer + 1, 
-                NextMovie.previous_product_id
-         FROM Product AS NextMovie
-              INNER JOIN MovieSeries AS ChildMovies ON NextMovie.product_id = ChildMovies.ITEM_ID)
-     SELECT *
-     FROM MovieSeries;
-
-----------------------------------
--- Optie 2
-----------------------------------
 CREATE TABLE #MovieSeries
 (ITEM_ID    INT NOT NULL, 
  TITLE      VARCHAR(255), 
@@ -117,3 +76,166 @@ FROM #MovieSeries
 ORDER BY Volgnummer;
 DROP TABLE #MovieSeries;
 GO
+
+SET STATISTICS TIME OFF;
+SET STATISTICS IO OFF;
+GO
+
+--  SQL Server Execution Times:
+--     CPU time = 0 ms,  elapsed time = 0 ms.
+--
+--  SQL Server Execution Times:
+--     CPU time = 1 ms,  elapsed time = 1 ms.
+--
+--  SQL Server Execution Times:
+--     CPU time = 0 ms,  elapsed time = 0 ms.
+--
+--  SQL Server Execution Times:
+--     CPU time = 0 ms,  elapsed time = 0 ms.
+--
+--  SQL Server Execution Times:
+--     CPU time = 0 ms,  elapsed time = 0 ms.
+--
+--  SQL Server Execution Times:
+--     CPU time = 0 ms,  elapsed time = 0 ms.
+-- SQL Server parse and compile time:
+--     CPU time = 2 ms, elapsed time = 2 ms.
+-- Table '#MovieSeries________________________________________________________________________________________________________000000000006'. Scan count 0, logical reads 1, physical reads 0, read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob read-ahead reads 0.
+-- Table 'Product'. Scan count 0, logical reads 4, physical reads 0, read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob read-ahead reads 0.
+--
+-- (1 row affected)
+--
+-- (1 row affected)
+--
+--  SQL Server Execution Times:
+--     CPU time = 2 ms,  elapsed time = 1 ms.
+--
+--  SQL Server Execution Times:
+--     CPU time = 0 ms,  elapsed time = 0 ms.
+-- 207989
+--
+--  SQL Server Execution Times:
+--     CPU time = 0 ms,  elapsed time = 0 ms.
+-- Table 'Product'. Scan count 0, logical reads 7, physical reads 0, read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob read-ahead reads 0.
+--
+-- (1 row affected)
+--
+--  SQL Server Execution Times:
+--     CPU time = 2 ms,  elapsed time = 2 ms.
+--
+--  SQL Server Execution Times:
+--     CPU time = 0 ms,  elapsed time = 0 ms.
+--
+--  SQL Server Execution Times:
+--     CPU time = 0 ms,  elapsed time = 0 ms.
+-- SQL Server parse and compile time:
+--     CPU time = 1 ms, elapsed time = 1 ms.
+-- Table '#MovieSeries________________________________________________________________________________________________________000000000006'. Scan count 0, logical reads 1, physical reads 0, read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob read-ahead reads 0.
+-- Table 'Product'. Scan count 0, logical reads 4, physical reads 0, read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob read-ahead reads 0.
+--
+-- (1 row affected)
+--
+-- (1 row affected)
+--
+--  SQL Server Execution Times:
+--     CPU time = 2 ms,  elapsed time = 1 ms.
+--
+--  SQL Server Execution Times:
+--     CPU time = 0 ms,  elapsed time = 0 ms.
+-- 207992
+--
+--  SQL Server Execution Times:
+--     CPU time = 0 ms,  elapsed time = 0 ms.
+-- Table 'Product'. Scan count 0, logical reads 4, physical reads 0, read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob read-ahead reads 0.
+--
+-- (1 row affected)
+--
+--  SQL Server Execution Times:
+--     CPU time = 8 ms,  elapsed time = 7 ms.
+--
+--  SQL Server Execution Times:
+--     CPU time = 0 ms,  elapsed time = 0 ms.
+-- Table '#MovieSeries________________________________________________________________________________________________________000000000006'. Scan count 0, logical reads 0, physical reads 0, read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob read-ahead reads 0.
+-- Table 'Worktable'. Scan count 0, logical reads 0, physical reads 0, read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob read-ahead reads 0.
+-- Table 'Product'. Scan count 0, logical reads 0, physical reads 0, read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob read-ahead reads 0.
+--
+-- (0 rows affected)
+--
+-- (1 row affected)
+--
+--  SQL Server Execution Times:
+--     CPU time = 2 ms,  elapsed time = 2 ms.
+--
+--  SQL Server Execution Times:
+--     CPU time = 1 ms,  elapsed time = 0 ms.
+--
+--  SQL Server Execution Times:
+--     CPU time = 0 ms,  elapsed time = 0 ms.
+--
+--  SQL Server Execution Times:
+--     CPU time = 0 ms,  elapsed time = 0 ms.
+-- Table 'Product'. Scan count 1, logical reads 3350, physical reads 0, read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob read-ahead reads 0.
+--
+-- (1 row affected)
+--
+--  SQL Server Execution Times:
+--     CPU time = 53 ms,  elapsed time = 52 ms.
+--
+--  SQL Server Execution Times:
+--     CPU time = 0 ms,  elapsed time = 0 ms.
+--
+--  SQL Server Execution Times:
+--     CPU time = 0 ms,  elapsed time = 0 ms.
+-- SQL Server parse and compile time:
+--     CPU time = 1 ms, elapsed time = 1 ms.
+-- Table '#MovieSeries________________________________________________________________________________________________________000000000006'. Scan count 0, logical reads 1, physical reads 0, read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob read-ahead reads 0.
+-- Table 'Product'. Scan count 0, logical reads 4, physical reads 0, read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob read-ahead reads 0.
+--
+-- (1 row affected)
+--
+-- (1 row affected)
+--
+--  SQL Server Execution Times:
+--     CPU time = 2 ms,  elapsed time = 1 ms.
+--
+--  SQL Server Execution Times:
+--     CPU time = 0 ms,  elapsed time = 0 ms.
+-- Table 'Product'. Scan count 1, logical reads 3350, physical reads 0, read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob read-ahead reads 0.
+--
+-- (1 row affected)
+--
+--  SQL Server Execution Times:
+--     CPU time = 48 ms,  elapsed time = 48 ms.
+--
+--  SQL Server Execution Times:
+--     CPU time = 0 ms,  elapsed time = 0 ms.
+-- Table '#MovieSeries________________________________________________________________________________________________________000000000006'. Scan count 0, logical reads 0, physical reads 0, read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob read-ahead reads 0.
+-- Table 'Worktable'. Scan count 0, logical reads 0, physical reads 0, read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob read-ahead reads 0.
+-- Table 'Product'. Scan count 0, logical reads 0, physical reads 0, read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob read-ahead reads 0.
+--
+-- (0 rows affected)
+--
+-- (1 row affected)
+--
+--  SQL Server Execution Times:
+--     CPU time = 1 ms,  elapsed time = 1 ms.
+--
+--  SQL Server Execution Times:
+--     CPU time = 0 ms,  elapsed time = 0 ms.
+-- SQL Server parse and compile time:
+--     CPU time = 1 ms, elapsed time = 1 ms.
+--
+-- (3 rows affected)
+-- Table 'Worktable'. Scan count 0, logical reads 0, physical reads 0, read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob read-ahead reads 0.
+-- Table '#MovieSeries________________________________________________________________________________________________________000000000006'. Scan count 1, logical reads 1, physical reads 0, read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob read-ahead reads 0.
+--
+-- (1 row affected)
+--
+--  SQL Server Execution Times:
+--     CPU time = 2 ms,  elapsed time = 1 ms.
+--
+--  SQL Server Execution Times:
+--     CPU time = 1 ms,  elapsed time = 1 ms.
+-- SQL Server parse and compile time:
+--     CPU time = 0 ms, elapsed time = 0 ms.
+

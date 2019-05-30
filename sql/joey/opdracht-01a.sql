@@ -6,19 +6,19 @@ SET STATISTICS IO ON;
 
 DECLARE @MovieInReeks INT= 207989;
 WITH children
-     AS (SELECT P.product_id, P.previous_product_id
+     AS (SELECT P.product_id, P.previous_product_id, P.publication_year, P.title
          FROM Product P
          WHERE P.product_id = @MovieInReeks
          UNION ALL
-         SELECT child.product_id
+         SELECT child.product_id, child.previous_product_id, child.publication_year, child.title
          FROM Product AS child
               INNER JOIN children parent ON parent.previous_product_id = child.product_id),
      parents
-     AS (SELECT p.product_id, p.title
+     AS (SELECT p.product_id, p.previous_product_id, p.publication_year, p.title
          FROM Product p
          WHERE p.product_id = @MovieInReeks
          UNION ALL
-         SELECT super.product_id
+         SELECT super.product_id, super.previous_product_id ,super.publication_year, super.title
          FROM Product AS super
               INNER JOIN parents parent ON parent.product_id = super.previous_product_id)
      SELECT product_id AS PRODUCT_ID, 
