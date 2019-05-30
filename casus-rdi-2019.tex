@@ -29,18 +29,51 @@ Joey Stoffels (609589)
 
     %=================o ~~
     \newpage
-    \section{Opdracht 1: Hier komt text}
+    \section{Opdracht 1: Bevragingen}
     \label{opdracht1}
-    \input{opdrachten/opdracht-01.tex}
+    \paragraph{
+        Maak voor iedere query die je schrijft minimaal één alternatieve implementatie indien mogelijk en vergelijk de queryplannen.
+        Kies op basis van het queryplan, performance en onderhoudbaarheid van de code de juiste query en verklaar jouw keuze.
+    }
+    \input{opdrachten/opdracht-01_1.tex}
     \clearpage
-    \input{opdrachten/opdracht-01.tex}
+    \input{opdrachten/opdracht-01_2a.tex}
+    \clearpage
+    \input{opdrachten/opdracht-01_2b.tex}
     \clearpage
 
-    \section{Opdracht 2: Hier komt text}
+    \section{Opdracht 2: Constraints}
+    \paragraph{
+    Implementeer onderstaande constraints.
+    Het kan zijn dat je een aantal al tijdens de casus DDDQ heb geïdentificeerd en/of zelfs al gemaakt.
+    Lever in dat geval die code weer in voor deze casus. Indien je de constraints procedureel oplost, maak je zowel een Stored Procedure als een After Trigger.
+    Zorg voor nette error handling in jouw code en schrijf een complete testset voor beide constraint implementaties.
+    Leg uit of de SP of Trigger jouw voorkeur heeft en uiteraard waarom.
+    Als je bij een constraint vindt dat een Instead Of Trigger de betere variant is, maak je die ook en leg je uit waarom dit de beste oplossing is voor deze constraint.
+
+    }
     \label{opdracht2}
-    \input{opdrachten/opdracht-01.tex}
+    \input{opdrachten/opdracht-01_1.tex}
     \clearpage
-    \input{opdrachten/opdracht-01.tex}
+
+    \section{Opdracht 3: Transactie management en Concurrency}
+    \paragraph{
+        In zowel jouw SP's als Triggers maak je correct gebruik van Transacties.
+        Kies het juiste isolation level bij een implementatie en leg uit waarom dat het juiste level is.
+        Leg hierbij uit welke problemen zich kunnen voordoen in het default isolation level, hoe locking in die situatie werkt en hoe die d.m.v. het isolation level aangepast wordt.
+    }
+    \label{opdracht3}
+    \input{opdrachten/opdracht-01_1.tex}
+    \clearpage
+
+    \section{Opdracht 4: Indexeren}
+    \paragraph{
+        Geef aan waar jij denkt dat indexen nuttig kunnen zijn.
+        Toon het verschil aan tussen de situatie met en zonder index en verklaar de verschillen in performance en queryplannen.
+        Mogelijk veranderd je keuze van query als je gebruik maakt van indexen, geef dat dan aan.
+    }
+    \label{opdracht4}
+    \input{opdrachten/opdracht-01_1.tex}
     \clearpage
 
     %=================o ~~
@@ -49,7 +82,5 @@ Joey Stoffels (609589)
     \label{bronvermelding}
 
     \nocite{*}
-    \printbibliography[heading=none]
-    
 
 \end{document}
