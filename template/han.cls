@@ -16,6 +16,7 @@
 \RequirePackage{wallpaper}              % For background
 \RequirePackage[many]{tcolorbox}        % For whitebox behind title
 \RequirePackage[dutch]{babel}           % Nederlands taalpakket
+\RequirePackage{float}                  % Float voor het uitlijnen van figures
 
 % Bibliograpy
 \RequirePackage[style=apa]{biblatex}
