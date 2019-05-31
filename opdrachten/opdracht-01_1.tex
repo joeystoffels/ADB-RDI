@@ -16,17 +16,69 @@ ITEM_ID		TITLE				Volgnummer
 207991		Matrix Revolutions, The		3
 \end{lstlisting}
 
+\subsubsection{Versie 01}
 \paragraph{
+TODO: Marc
+}
+\lstinputlisting[language=SQL]{sql/marc/opdracht-01.sql}
+\begin{figure}
+    \centering
+    \includegraphics[width=1\textwidth]{image/marc/opdracht-01.PNG}
+    \caption{Queryplan Opdracht 01 Versie 01}
+\end{figure}
 
+\subsubsection{Versie 02}
+\paragraph{
+TODO: Joey
+}
+\lstinputlisting[language=SQL]{sql/joey/opdracht-01.sql}
+\begin{figure}
+    \centering
+    \includegraphics[width=1\textwidth]{image/joey/opdracht-01.PNG}
+    \caption{Queryplan Opdracht 01 Versie 02}
+\end{figure}
+
+
+\subsubsection{Versie 03}
+\paragraph{
+    De intentie van deze query was om geen CTE te gebruiken. In dit alternatief maken we gebruik van een tijdelijke tabel.
+    Na het aanmaken van van de tijdelijke tabel worden er 2 while loops gedraaid. Bij de eerste loop word er gekeken of er een vorige film is.
+    Als die er is, word die opgeslagen in de tijdelijke tabel, en herhaald hij de loop tot het punt komt dat er geen vorige film meer is.
+    Hetzelfde doet hij met vervolg films, als deze er zijn word die ook in de tijdelijke tabel opgeslagen.
+    Uiteindelijk word de tijdelijke tabel uitgevraagd, en krijg je de lijst met films te zien.
+    Als laatste word de tijdelijke tabel verwijderd.
 }
 \lstinputlisting[language=SQL]{sql/nick/opdracht-01.sql}
 
-\lstinputlisting[language=SQL]{sql/marc/opdracht-01.sql}
-\includegraphics[width=1\textwidth]{image/marc/opdracht-01.PNG}
+\subsubsection{Conclusie}
 
-\lstinputlisting[language=SQL]{sql/joey/opdracht-01.sql}
-\includegraphics[width=1\textwidth]{image/joey/opdracht-01.PNG}
+\begin{tabular}{ || l | l | l | l | l | l | l | l | l | l | l | l | 1 | 1 | l | 1 | 1 || }
+    \hline
+    \textbf{Statement} & \textbf{Est Cost \%} & \textbf{Compile Time} & \textbf{Duration} &
+    \textbf{CPU} & \textbf{Est CPU Cost \%} &
+    \textbf{Est IO Cost \%} \\
+    \hline
+    \hline
+    Versie01  & 0,0\%  & 12  & 40  & 40  & 4,9\% & 0,0\% \\
+    \hline
+    Versie02  & 100,0\%  & 20  & 76  & 75  & 95,1\% & 100,0\%  \\
+    \hline
+\end{tabular}
+\newline
+\newline
+\begin{tabular}{ || l | l | l | l | l | l | l | l | l | l | l | l | 1 | 1 | l | 1 | 1 || }
+    \hline
+    \textbf{Statement} &  \textbf{Est Rows} & \textbf{Actual Rows} & \textbf{RID Lookups} &
+    \textbf{Parallel} & \textbf{Sort} &
+    \textbf{Table Scan} & \textbf{Hash Match} \\
+    \hline
+    \hline
+    Versie01  & 77.765  & 3  & 2  & 0  & 1  & 1  & 2 \\
+    \hline
+    Versie02  & 1.157.780  & 3  & 3  & 5  & 1  & 1  & 0 \\
+    \hline
+\end{tabular}
 
 \paragraph{
-
+    HIer komt dus een lang verhaal over welke query het beste is, en waarom
 }

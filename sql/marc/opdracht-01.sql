@@ -30,7 +30,7 @@ WITH moviereeks
      SELECT product_id AS ITEM_ID, 
             title AS TITLE, 
             ROW_NUMBER() OVER(
-            ORDER BY publication_year ASC) AS Volgnummer
+            ORDER BY publication_year) AS Volgnummer
      FROM moviereeks
      GROUP BY product_id, 
               title, 
