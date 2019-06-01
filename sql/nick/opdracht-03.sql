@@ -4,6 +4,7 @@
 
 WITH ReviewScoreCalculate
      AS (SELECT DISTINCT 
+				P.product_id,
                 P.title, 
                 PERCENTILE_CONT(0.5) WITHIN GROUP(ORDER BY score) OVER(PARTITION BY RC.product_id) AS median_score
          FROM Review_Category AS RC
@@ -15,11 +16,13 @@ WITH ReviewScoreCalculate
                 title, 
                 DENSE_RANK() OVER(
                 ORDER BY median_score DESC) AS rank, 
-                median_score
+                median_score,
+				product_id
          FROM ReviewScoreCalculate)
-     SELECT nr, 
+     SELECT product_id,
             title, 
-            median_score
+            median_score,
+			nr
      FROM ReviewScore
      WHERE nr <= 10
      ORDER BY rank;

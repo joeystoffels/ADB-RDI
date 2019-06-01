@@ -7,17 +7,23 @@
 
 WITH MediaanCTE
      AS (SELECT DISTINCT 
+				P.product_id,
                 P.title AS FilmTitel, 
-                AVG(CAST(RC.score AS DECIMAL(3, 1))) OVER(PARTITION BY RC.product_id) AS Mediaan
+                PERCENTILE_CONT(0.5) WITHIN GROUP(ORDER BY score) OVER(PARTITION BY RC.product_id) AS Mediaan
          FROM Review_Category RC
-              INNER JOIN Product P ON P.product_id = RC.product_id),
+              INNER JOIN Product P ON P.product_id = RC.product_id
+			  WHERE Product_Type = 'Movie'),
      RankCTE
-     AS (SELECT FilmTitel, 
+     AS (SELECT product_id,
+				FilmTitel, 
                 DENSE_RANK() OVER(
                 ORDER BY Mediaan DESC, 
                          FilmTitel) AS Rank
-         FROM MediaanCTE)
-     SELECT c.FilmTitel, 
+         FROM MediaanCTE
+		 )
+     SELECT DISTINCT 
+			c.product_id,
+			c.FilmTitel, 
             c.Mediaan, 
             DENSE_RANK() OVER(
             ORDER BY c.Mediaan DESC, 
