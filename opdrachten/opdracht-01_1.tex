@@ -1,11 +1,10 @@
 \subsection{Opdracht 01}
 
-\paragraph{
 Geef van een film, de hele reeks waar die bij hoort met volgnummer en in de juiste volgorde.
 Indien hij niet in een reeks zit, is de lijst gewoon één lang met volgnummer 1.
 Dit moet één statement worden die van een variabel ID de reeks geeft zoals onderstaand voorbeeld:
 DECLARE @MovieInReeks INT = 207989;
-}
+
 
 \begin{lstlisting}
 -- jouw statement hier levert onderstaand resultaat:
@@ -17,9 +16,9 @@ ITEM_ID		TITLE				Volgnummer
 \end{lstlisting}
 
 \subsubsection{Versie 01}
-\paragraph{
+
 TODO: Marc
-}
+
 \lstinputlisting[language=SQL]{sql/marc/opdracht-01.sql}
 \begin{figure}
     \centering
@@ -28,9 +27,8 @@ TODO: Marc
 \end{figure}
 
 \subsubsection{Versie 02}
-\paragraph{
 TODO: Joey
-}
+
 \lstinputlisting[language=SQL]{sql/joey/opdracht-01.sql}
 \begin{figure}
     \centering
@@ -40,14 +38,14 @@ TODO: Joey
 
 
 \subsubsection{Versie 03}
-\paragraph{
+
     De intentie van deze query was om geen CTE te gebruiken. In dit alternatief maken we gebruik van een tijdelijke tabel.
     Na het aanmaken van van de tijdelijke tabel worden er 2 while loops gedraaid. Bij de eerste loop word er gekeken of er een vorige film is.
     Als die er is, word die opgeslagen in de tijdelijke tabel, en herhaald hij de loop tot het punt komt dat er geen vorige film meer is.
     Hetzelfde doet hij met vervolg films, als deze er zijn word die ook in de tijdelijke tabel opgeslagen.
     Uiteindelijk word de tijdelijke tabel uitgevraagd, en krijg je de lijst met films te zien.
     Als laatste word de tijdelijke tabel verwijderd.
-}
+
 \lstinputlisting[language=SQL]{sql/nick/opdracht-01.sql}
 
 \subsubsection{Conclusie}
@@ -79,6 +77,5 @@ TODO: Joey
     \hline
 \end{tabular}
 
-\paragraph{
-    HIer komt dus een lang verhaal over welke query het beste is, en waarom
-}
+
+HIer komt dus een lang verhaal over welke query het beste is, en waarom

@@ -1,10 +1,8 @@
--- 5.	Vermoedelijk zijn niet alle Film ID’s in gebruik.
--- Geef het statement dat de langste aaneengesloten reeks geeft van Film ID’s in jouw database.
--- Geef ook het statement dat de langste reeks geeft die NIET in de database aanwezig is. Geef van beide statements het start en eind ID van de reeks.
--- https://www.red-gate.com/simple-talk/sql/t-sql-programming/the-sql-of-gaps-and-islands-in-sequences/
-------------------------------------------
--- Langste aaneengesloten reeks
-------------------------------------------
+USE ODISEE;
+GO
+SET STATISTICS TIME ON;
+SET STATISTICS IO ON;
+GO
 WITH DetectIslands
      AS (SELECT ROW_NUMBER() OVER(
                 ORDER BY product_id) AS rn, 
@@ -27,3 +25,21 @@ WITH DetectIslands
          SELECT MAX(length)
          FROM Islands
      );
+SET STATISTICS TIME OFF;
+SET STATISTICS IO OFF;
+GO
+
+
+-- SQL Server Execution Times:
+--    CPU time = 0 ms,  elapsed time = 0 ms.
+-- SQL Server parse and compile time:
+--    CPU time = 7 ms, elapsed time = 7 ms.
+--
+-- (1 row affected)
+-- Table 'Product'. Scan count 2, logical reads 1740, physical reads 0, read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob read-ahead reads 0.
+-- Table 'Worktable'. Scan count 0, logical reads 0, physical reads 0, read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob read-ahead reads 0.
+-- Table 'Workfile'. Scan count 0, logical reads 0, physical reads 0, read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob read-ahead reads 0.
+-- Table 'Worktable'. Scan count 0, logical reads 0, physical reads 0, read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob read-ahead reads 0.
+--
+--  SQL Server Execution Times:
+--    CPU time = 1358 ms,  elapsed time = 795 ms.
