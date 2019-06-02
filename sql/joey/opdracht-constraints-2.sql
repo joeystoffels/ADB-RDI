@@ -73,13 +73,13 @@ SET previous_product_id = 345635 WHERE product_id = 313799
 
 -- Should fail because the first entry is violating the trigger rules.
 INSERT INTO Product
-VALUES	(9999999, 'Movie', 345635, 'Star Wars Latest', null, null, 2.00, 1989, null, null, null),
-		(9999998, 'Movie', 345635, 'Star Wars Latest', null, null, 2.00, 1999, null, null, null)
+VALUES	(9999998, 'Movie', 345635, 'Star Wars Latest', null, null, 2.00, 1999, null, null, null),
+		(9999999, 'Movie', 345635, 'Star Wars Latest', null, null, 2.00, 1989, null, null, null)
 
 -- Should fail because the second entry is violating the trigger rules.
 INSERT INTO Product
-VALUES	(9999998, 'Movie', 345635, 'Star Wars Latest', null, null, 2.00, 1999, null, null, null),
-		(9999999, 'Movie', 345635, 'Star Wars Latest', null, null, 2.00, 1989, null, null, null)
+VALUES	(9999999, 'Movie', 345635, 'Star Wars Latest', null, null, 2.00, 1988, null, null, null),
+		(9999998, 'Movie', 345635, 'Star Wars Latest', null, null, 2.00, 2000, null, null, null)
 
 -- Should succeed because both entries have a publication_year before 1999.
 INSERT INTO Product
