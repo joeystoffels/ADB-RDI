@@ -47,11 +47,11 @@ END;
 -- before or after the current product, thus we assume that the same publication_year violates the trigger rules.
 
 
--- Should fail because its publication year is before 1999.
+-- Should fail because its publication year is after 1999.
 INSERT INTO Product
 VALUES	(9999998, 'Movie', 345635, 'Star Wars Latest', null, null, 2.00, 2000, null, null, null)
 
--- Should succeed because its publication year is after 1999.
+-- Should succeed because its publication year is before 1999.
 INSERT INTO Product
 VALUES	(9999999, 'Movie', 345635, 'Star Wars Latest', null, null, 2.00, 1998, null, null, null)
 
@@ -60,11 +60,11 @@ DELETE FROM PRODUCT WHERE product_id = 9999999
 
 
 
--- Should fail because its publication year is before 1999 (2002).
+-- Should fail because its publication year is after 1999 (2002).
 UPDATE Product
 SET previous_product_id = 345635 WHERE product_id = 313503
 
--- Should succeed because its publication year is after 1999 (1996).
+-- Should succeed because its publication year is before 1999 (1996).
 UPDATE Product
 SET previous_product_id = 345635 WHERE product_id = 313508
 
