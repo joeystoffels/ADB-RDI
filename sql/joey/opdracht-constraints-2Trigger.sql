@@ -9,7 +9,9 @@ AS
 BEGIN
 
 	SET NOCOUNT ON;
-	IF EXISTS (SELECT product_type FROM inserted WHERE product_type != 'Movie' OR previous_product_id IS NULL) RETURN;
+
+	-- Trigger should only process if ProductType = 'Movie' AND previous_product_id is not null.
+	IF EXISTS (SELECT product_type FROM inserted WHERE product_type != 'Movie' AND previous_product_id IS NULL) RETURN;
 
 	BEGIN TRY
 		PRINT 'In try block of TR_Products_AI_AU';
