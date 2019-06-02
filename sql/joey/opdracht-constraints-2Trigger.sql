@@ -1,4 +1,4 @@
--- Constraint #2
+-- Constraint #2, Trigger uitwerking
 -- Bij een film met previous part, is de film later uitgebracht dan het previous part.
 
 DROP TRIGGER IF EXISTS TR_Products_AI_AU
@@ -10,8 +10,9 @@ BEGIN
 
 	SET NOCOUNT ON;
 
-	-- Trigger should only process if ProductType = 'Movie' AND previous_product_id is not null.
-	IF EXISTS (SELECT product_type FROM inserted WHERE product_type != 'Movie' AND previous_product_id IS NULL) RETURN;
+	-- Trigger should only process if ProductType = 'Movie' and previous_product_id is not null.
+	IF EXISTS (SELECT product_type FROM inserted WHERE product_type != 'Movie') RETURN;
+	IF EXISTS (SELECT Product_Type FROM inserted WHERE previous_product_id IS NULL) RETURN;
 
 	BEGIN TRY
 		PRINT 'In try block of TR_Products_AI_AU';
