@@ -56,30 +56,22 @@ SET STATISTICS IO OFF;
 GO
 
 
-
 -- SQL Server Execution Times:
 --     CPU time = 0 ms,  elapsed time = 0 ms.
 -- SQL Server parse and compile time:
---     CPU time = 0 ms, elapsed time = 0 ms.
+--     CPU time = 43 ms, elapsed time = 43 ms.
 --
 --  SQL Server Execution Times:
 --     CPU time = 0 ms,  elapsed time = 0 ms.
 --
 --  SQL Server Execution Times:
 --     CPU time = 0 ms,  elapsed time = 0 ms.
+-- Warning: Null value is eliminated by an aggregate or other SET operation.
 --
---  SQL Server Execution Times:
---     CPU time = 0 ms,  elapsed time = 0 ms.
+--     (12 rows affected)
+--     Table 'Worktable'. Scan count 5, logical reads 102, physical reads 0, read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob read-ahead reads 0.
+--     Table 'User'. Scan count 0, logical reads 66, physical reads 0, read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob read-ahead reads 0.
+--     Table 'Purchase'. Scan count 13, logical reads 26, physical reads 0, read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob read-ahead reads 0.
 --
--- (1 row affected)
--- Table 'Worktable'. Scan count 0, logical reads 0, physical reads 0, read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob read-ahead reads 0.
--- Table 'User'. Scan count 0, logical reads 33, physical reads 0, read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob read-ahead reads 0.
--- Table 'Purchase'. Scan count 1, logical reads 2, physical reads 0, read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob read-ahead reads 0.
---
--- (11 rows affected)
---
--- (1 row affected)
---
---  SQL Server Execution Times:
---     CPU time = 0 ms,  elapsed time = 181 ms.
-
+--     SQL Server Execution Times:
+--     CPU time = 0 ms,  elapsed time = 10 ms.
