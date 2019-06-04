@@ -29,7 +29,7 @@ BEGIN
 			SELECT *
 			FROM Product P
 			INNER JOIN inserted I ON P.product_id = I.previous_product_id
-			WHERE P.publication_year <= I.publication_year)
+			WHERE P.publication_year >= I.publication_year)
 
 		THROW 50001, 'Publication_year of previous part is after the inserted/updated product publication year!', 1;
 
@@ -47,30 +47,30 @@ END;
 -- before or after the current product, thus we assume that the same publication_year violates the trigger rules.
 
 
--- Should fail because its publication year is after 1999.
+-- Should fail because its publication year is before 1999.
 INSERT INTO Product
-VALUES	(9999998, 'Movie', 345635, 'Star Wars Latest', null, null, 2.00, 2000, null, null, null)
+VALUES	(9999998, 'Movie', 345635, 'Star Wars Latest', null, null, 2.00, 1998, null, null, null)
 
--- Should succeed because its publication year is before 1999.
+-- Should succeed because its publication year is after 1999.
 INSERT INTO Product
-VALUES	(9999999, 'Movie', 345635, 'Star Wars Latest', null, null, 2.00, 1998, null, null, null)
+VALUES	(9999999, 'Movie', 345635, 'Star Wars Latest', null, null, 2.00, 2000, null, null, null)
 
 -- Rollback
 DELETE FROM PRODUCT WHERE product_id = 9999999
 
 
 
--- Should fail because its publication year is after 1999 (2002).
+-- Should fail because its publication year is before 1999 (2002).
 UPDATE Product
-SET previous_product_id = 345635 WHERE product_id = 313503
+SET previous_product_id = 313503 WHERE product_id = 345635
 
--- Should succeed because its publication year is before 1999 (1996).
+-- Should succeed because its publication year is after 1999 (1996).
 UPDATE Product
-SET previous_product_id = 345635 WHERE product_id = 313508
+SET previous_product_id = 313508  WHERE product_id = 345635
 
 -- Rollback
 UPDATE Product
-SET previous_product_id = null WHERE product_id = 313508
+SET previous_product_id = null WHERE product_id = 345635
 
 
 
@@ -80,7 +80,7 @@ VALUES (9999999, 'Movie', 345635, 'Star Wars Latest', null, null, 2.00, 1999, nu
 
 -- Should fail because it has the same publication year.
 UPDATE Product
-SET previous_product_id = 345635 WHERE product_id = 313799
+SET previous_product_id = 313799 WHERE product_id = 345635
 
 
 
@@ -96,8 +96,8 @@ VALUES	(9999999, 'Movie', 345635, 'Star Wars Latest', null, null, 2.00, 1988, nu
 
 -- Should succeed because both entries have a publication_year before 1999.
 INSERT INTO Product
-VALUES	(9999999, 'Movie', 345635, 'Star Wars Latest', null, null, 2.00, 1989, null, null, null),
-		(9999998, 'Movie', 345635, 'Star Wars Latest', null, null, 2.00, 1988, null, null, null)
+VALUES	(9999999, 'Movie', 345635, 'Star Wars Latest', null, null, 2.00, 2000, null, null, null),
+		(9999998, 'Movie', 345635, 'Star Wars Latest', null, null, 2.00, 2010, null, null, null)
 
 -- Rollback
 DELETE FROM Product WHERE product_id = 9999999
