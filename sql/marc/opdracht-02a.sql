@@ -11,13 +11,8 @@ DECLARE @Year INT= 2019;
 SELECT YEAR(P.purchase_date) AS Year,
        MONTH(P.purchase_date) AS Month, 
        COUNT(*) AS ItemsPerMonth, 
-       CONCAT(CONVERT(DECIMAL(4, 2), (100 /
-(
-    SELECT CONVERT(DECIMAL(4, 2), COUNT(*))
-    FROM Purchase P
-         INNER JOIN [User] AS U ON P.email_address = U.email_address
-    WHERE U.country_name = 'The Netherlands'
-))) * COUNT(*), '%') AS PercentageOfTotal
+       CONCAT(CONVERT(DECIMAL(4, 2), 
+			(100 / (CONVERT(DECIMAL(4, 2), COUNT(*))))) * COUNT(*), '%') AS PercentageOfTotal
 FROM Purchase P
      INNER JOIN [User] AS U ON P.email_address = U.email_address
 WHERE U.country_name = 'The Netherlands'
