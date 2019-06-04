@@ -29,10 +29,11 @@ SET STATISTICS IO OFF;
 GO
 
 
+
 --  SQL Server Execution Times:
 --    CPU time = 0 ms,  elapsed time = 0 ms.
 -- SQL Server parse and compile time:
---    CPU time = 24 ms, elapsed time = 24 ms.
+--    CPU time = 0 ms, elapsed time = 36 ms.
 --
 --  SQL Server Execution Times:
 --    CPU time = 0 ms,  elapsed time = 0 ms.
@@ -45,10 +46,13 @@ GO
 --
 -- (1 row affected)
 -- Table 'Worktable'. Scan count 0, logical reads 0, physical reads 0, read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob read-ahead reads 0.
--- Table 'User'. Scan count 1, logical reads 35, physical reads 1, read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob read-ahead reads 0.
--- Table 'Purchase'. Scan count 35, logical reads 70, physical reads 1, read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob read-ahead reads 0.
+-- Table 'User'. Scan count 0, logical reads 33, physical reads 0, read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob read-ahead reads 0.
+-- Table 'Purchase'. Scan count 1, logical reads 2, physical reads 0, read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob read-ahead reads 0.
+--
+-- (11 rows affected)
 --
 -- (1 row affected)
 --
 --  SQL Server Execution Times:
---    CPU time = 0 ms,  elapsed time = 57 ms.
+--    CPU time = 0 ms,  elapsed time = 80 ms.
+
