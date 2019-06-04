@@ -1,6 +1,9 @@
 -- Constraint #2, Stored Procedure uitwerking
 -- Bij een film met previous part, is de film later uitgebracht dan het previous part.
 
+DROP TRIGGER IF EXISTS TR_Products_AI_AU
+GO
+
 DROP PROCEDURE IF EXISTS USP_Products_Insert
 GO
 CREATE PROCEDURE USP_Products_Insert (
@@ -78,10 +81,10 @@ EXEC USP_Products_Insert 9999999, 'Movie', 345635, 'Star Wars Latest', null, nul
 -- Should fail because previous part is of type 'Game'.
 EXEC USP_Products_Insert 9999999, 'Movie', 412331, 'Star Wars Latest', null, null, 2.00, 1999, null, null, null
 
--- Should bypass trigger and succeed because product type is not 'Movie'.
+-- Should bypass SP and succeed because product type is not 'Movie'.
 EXEC USP_Products_Insert 9999998, 'Game', 345635, 'Star Wars Latest', null, null, 2.00, 1999, null, null, null
 
--- Should bypass trigger and succeed because previous part is null.
+-- Should bypass SP and succeed because previous part is null.
 EXEC USP_Products_Insert 9999999, 'Movie', null, 'Star Wars Latest', null, null, 2.00, 1999, null, null, null
 
 -- Rollback
@@ -135,9 +138,6 @@ AS
 		THROW;
 	END CATCH
 GO
-
-DROP TRIGGER IF EXISTS TR_Products_AI_AU
-
 
 -- SP update tests
 -- Info: Product_id 345635 has publication_year 1999.
