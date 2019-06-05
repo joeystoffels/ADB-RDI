@@ -114,6 +114,7 @@ GO
 -- [04] Film valt gelijk aan de einddag van de abonnementperiode.
 -- [05] Film valt tussen abbonementsperiode's in
 -- [06] Film valt in een periode waarin er geen einddag bekend is.
+-- [07] Film valt in meerdere abonnementperiodes
 
 --  --------------------------------------------------------
 --  Testscenario's
@@ -179,12 +180,25 @@ INSERT INTO Purchase
 VALUES
 (123123, 
  'test@test.nl', 
- '2019-06-02', 
+ '2018-04-01', 
  3.00
 );
 ROLLBACK TRANSACTION;
 
 -- [Scenario 06] : Film valt in een periode waarin er geen einddag bekend is.
+-- Result: Success
+BEGIN TRANSACTION;
+EXEC SP_DemoData;
+INSERT INTO Purchase
+VALUES
+(123123, 
+ 'test@test.nl', 
+ '2019-06-02', 
+ 3.00
+);
+ROLLBACK TRANSACTION;
+
+-- [Scenario 07] : Film valt in een periode waarin er geen einddag bekend is.
 -- Result: Success
 BEGIN TRANSACTION;
 EXEC SP_DemoData;
