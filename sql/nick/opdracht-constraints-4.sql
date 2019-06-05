@@ -6,6 +6,7 @@
 USE odisee;
 GO
 DROP TRIGGER IF EXISTS TR_WatchMovieInPeriod;
+DROP PROCEDURE IF EXISTS SP_DemoData; 
 GO
 
 --  --------------------------------------------------------
@@ -18,6 +19,7 @@ AS
          SET NOCOUNT ON; -- Stops the message that shows the count of the number of rows affected
          -- Declare variables
          DECLARE @email NVARCHAR(4000);
+         DECLARE @purchase_date DATE;
          IF NOT EXISTS
          (
              SELECT *
@@ -30,15 +32,20 @@ AS
                  SELECT email_address
                  FROM inserted
              );
-             IF EXISTS
+             SET @purchase_date =
              (
-
-
-                 Select * from [User] AS U
-				 INNER JOIN User_Subscription AS US ON U.email_address = US.email_address
-				 where U.email_address = 'nickhartjes@gmail.com'
+                 SELECT purchase_date
+                 FROM inserted
+             );
+             IF NOT EXISTS
+             (
+                 SELECT 'Subscription'
+                 FROM User_Subscription
+                 WHERE email_address = @email
+                       AND subscription_startdate <= @purchase_date
+                       AND ISNULL(subscription_enddate, '2099-12-31') >= @purchase_date
              )
-                 THROW 50001, 'Beautifull error message, readable for users...', 1;
+                 THROW 50001, 'Movie can not be purchased outside a subscription period ', 1;
          END TRY
          BEGIN CATCH
              THROW; -- Using TROW handles ROLLBACK and bubbles up the thrown error.
@@ -49,47 +56,150 @@ AS
 --  --------------------------------------------------------
 --  Demo data
 --  --------------------------------------------------------
-INSERT INTO User_Subscription  VALUES ('nickhartjes@gmail.com', 'The Netherlands', 'Basic', 'Basic', '2018-12-01', '2019-05-07', 3.00);
-INSERT INTO User_Subscription  VALUES ('nickhartjes@gmail.com', 'The Netherlands', 'Basic', 'Basic', '2019-05-01', '2019-05-07', 3.00);
-INSERT INTO User_Subscription  VALUES ('nickhartjes@gmail.com', 'The Netherlands', 'Basic', 'Basic', '2019-05-01', '2019-05-07', 3.00);
 
+CREATE PROCEDURE SP_DemoData
+AS
+    BEGIN
+        SET NOCOUNT ON;
+        DECLARE @email NVARCHAR(4000)= 'test@test.nl';
+        DECLARE @startDate01 DATE= '2017-03-01';
+        DECLARE @endDate01 DATE= '2018-03-01';
+        DECLARE @startDate02 DATE= '2018-05-01';
+        DECLARE @endDate02 DATE= '2019-05-01';
+		DECLARE @startDate03 DATE= '2019-06-01';
+        INSERT INTO [User]
+        VALUES
+        (@email, 
+         'The Netherlands', 
+         'Test user', 
+         'Delete', 
+         'this user', 
+         'M', 
+         NULL
+        );
+        INSERT INTO User_Subscription
+        VALUES
+        (@email, 
+         'The Netherlands', 
+         'Basic', 
+         'Basic', 
+         @startDate01, 
+         @endDate01, 
+         3.00
+        ),
+        (@email, 
+         'The Netherlands', 
+         'Basic', 
+         'Basic', 
+         @startDate02, 
+         @endDate02, 
+         3.00
+        ),  (@email, 
+         'The Netherlands', 
+         'Basic', 
+         'Basic', 
+         @startDate03, 
+         Null, 
+         3.00
+        );
+    END;
+GO
 
 --  --------------------------------------------------------
 --  Testscenario's
 --  --------------------------------------------------------
--- Film valt voor de abonnementperiode
--- Film valt na de abonnementperiode
--- Film valt gelijk aan de startdag van de abonnementperiode.
--- Film valt gelijk aan de einddag van de abonnementperiode.
--- Film valt tussen abbonementsperiode's in
--- Film valt in een periode waarin er geen einddag bekend is.
--- Film valt in meerdere abonnementperiodes
+-- [01] Film valt voor de abonnementperiode
+-- [02] Film valt na de abonnementperiode
+-- [03] Film valt gelijk aan de startdag van de abonnementperiode.
+-- [04] Film valt gelijk aan de einddag van de abonnementperiode.
+-- [05] Film valt tussen abbonementsperiode's in
+-- [06] Film valt in een periode waarin er geen einddag bekend is.
 
-DECLARE @DATUM1 DATE;
-DECLARE @DATUM2 DATE;
-SELECT @DATUM1 = MIN(DateMarriage)
-FROM MARRIAGE
-WHERE HusbandID = 1
-      AND DateDivorce IS NULL;
-SELECT @DATUM2 = MIN(DateMarriage)
-FROM MARRIAGE
-WHERE HusbandID = 3
-      AND DateDivorce IS NULL;
---eentje fout
-INSERT INTO Marriage
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- [Scenario 01] : Film valt voor de abonnementperiode
+-- Result: Throw Error
+BEGIN TRANSACTION;
+EXEC SP_DemoData;
+INSERT INTO Purchase
 VALUES
-(1, 
- 3, 
- DATEADD(day, -60, @DATUM1), 
- DATEADD(day, -55, @DATUM1)
-),
-(3, 
- 8, 
- DATEADD(day, -10, @DATUM2), 
- DATEADD(day, -8, @DATUM2)
+(123123, 
+ 'test@test.nl', 
+ '2010-01-01', 
+ 3.00
 );
---beiden goed
---INSERT INTO Marriage 
---	values (1,3, DATEADD(day, -48, @DATUM1), DATEADD(day, -30, @DATUM1)),
---	(3,8, DATEADD(day, -49, @DATUM2), DATEADD(day, -40, @DATUM2));
+ROLLBACK TRANSACTION;
+
+
+-- [Scenario 02] : Film valt na de abonnementperiode
+-- Result: Throw Error
+BEGIN TRANSACTION;
+EXEC SP_DemoData;
+INSERT INTO Purchase
+VALUES
+(123123, 
+ 'test@test.nl', 
+ '2020-01-01', 
+ 3.00
+);
+ROLLBACK TRANSACTION;
+
+-- [Scenario 03] : Film valt gelijk aan de startdag van de abonnementperiode.
+-- Result: Success
+BEGIN TRANSACTION;
+EXEC SP_DemoData;
+INSERT INTO Purchase
+VALUES
+(123123, 
+ 'test@test.nl', 
+ '2017-03-01', 
+ 3.00
+);
+ROLLBACK TRANSACTION;
+
+-- [Scenario 04] : Film valt gelijk aan de einddag van de abonnementperiode.
+-- Result: Success
+BEGIN TRANSACTION;
+EXEC SP_DemoData;
+INSERT INTO Purchase
+VALUES
+(123123, 
+ 'test@test.nl', 
+ '2018-03-01', 
+ 3.00
+);
+ROLLBACK TRANSACTION;
+
+-- [Scenario 05] : Film valt tussen abbonementsperiode's in.
+-- Result: Throw Error
+BEGIN TRANSACTION;
+EXEC SP_DemoData;
+INSERT INTO Purchase
+VALUES
+(123123, 
+ 'test@test.nl', 
+ '2019-06-02', 
+ 3.00
+);
+ROLLBACK TRANSACTION;
+
+-- [Scenario 06] : Film valt in een periode waarin er geen einddag bekend is.
+-- Result: Success
+BEGIN TRANSACTION;
+EXEC SP_DemoData;
+INSERT INTO Purchase
+VALUES
+(123123, 
+ 'test@test.nl', 
+ '2019-06-02', 
+ 3.00
+);
+ROLLBACK TRANSACTION;
+
+--  --------------------------------------------------------
+--  Cleanup
+--  --------------------------------------------------------
+DROP TRIGGER IF EXISTS TR_WatchMovieInPeriod;
+DROP PROCEDURE IF EXISTS SP_DemoData;  
 GO
