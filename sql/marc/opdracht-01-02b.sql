@@ -7,18 +7,18 @@
 DECLARE @StartDate DATE= '20180501';
 DECLARE @EndDate DATE= '20190501';
 SELECT country_name AS CountryName, 
-       [january] AS January, 
-       [february] AS February, 
-       [march] AS March, 
-       [april] AS April, 
-       [may] AS May, 
-       [june] AS June, 
-       [july] AS July, 
-       [august] AS August, 
-       [september] AS September, 
-       [october] AS October, 
-       [november] AS November, 
-       [december] AS December, 
+       ISNULL([january], '0.00%') AS January, 
+       ISNULL([february], '0.00%') AS February, 
+       ISNULL([march], '0.00%') AS March, 
+       ISNULL([april], '0.00%') AS April, 
+       ISNULL([may], '0.00%') AS May, 
+       ISNULL([june], '0.00%') AS June, 
+       ISNULL([july], '0.00%') AS July, 
+       ISNULL([august], '0.00%') AS August, 
+       ISNULL([september], '0.00%') AS September, 
+       ISNULL([october], '0.00%') AS October, 
+       ISNULL([november], '0.00%') AS November, 
+       ISNULL([december], '0.00%') AS December, 
 (
     SELECT COUNT(purchase_date)
     FROM purchase
@@ -29,9 +29,9 @@ FROM
 (
     SELECT u1.country_name, 
            Datename(month, p1.purchase_date) AS month, 
-           CONCAT(CONVERT(DECIMAL(4, 2), (100 /
+           CONCAT(CONVERT(DECIMAL(5, 2), (100 /
     (
-        SELECT CONVERT(DECIMAL(4, 2), COUNT(*))
+        SELECT CONVERT(DECIMAL(5, 2), COUNT(*))
         FROM purchase p3
              INNER JOIN [user] u3 ON p3.email_address = u3.email_address
         WHERE u1.country_name = u3.country_name
