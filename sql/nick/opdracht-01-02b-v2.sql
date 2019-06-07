@@ -65,3 +65,19 @@ GO
 SET STATISTICS TIME OFF;
 SET STATISTICS IO OFF;
 GO
+
+-- SQL Server Execution Times:
+--    CPU time = 0 ms,  elapsed time = 1 ms.
+--
+--  SQL Server Execution Times:
+--    CPU time = 0 ms,  elapsed time = 0 ms.
+--
+-- (2 rows affected)
+-- Table 'Worktable'. Scan count 4, logical reads 13, physical reads 0, read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob read-ahead reads 0.
+-- Table 'User'. Scan count 0, logical reads 99, physical reads 2, read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob read-ahead reads 0.
+-- Table 'Purchase'. Scan count 3, logical reads 6, physical reads 1, read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob read-ahead reads 0.
+--
+--  SQL Server Execution Times:
+--    CPU time = 0 ms,  elapsed time = 11 ms.
+-- SQL Server parse and compile time:
+--    CPU time = 0 ms, elapsed time = 0 ms.
