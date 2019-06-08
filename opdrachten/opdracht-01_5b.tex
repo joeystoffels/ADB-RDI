@@ -2,10 +2,12 @@
 Geef ook het statement dat de langste reeks geeft die NIET in de database aanwezig is. Geef van beide statements het start en eind ID van de reeks.
 
 \subsubsection{Versie 01}
-In onderstaande query wordt er gebruik gemaakt van een CTE. Allereerst wordt de huidige ID vastgesteld. Vervolgens wordt er in deze
-CTE gebruik gemaakt van een LAG functie, waardoor het verschil tussen de huidige ID en de vorige ID in de resultset kan worden vastgesteld.
-Hierna wordt de grootte van dit verschil berekend door de vorige ID van de huidige ID af te trekken. Dit levert een waarde op welke
-de maximale reeks met lege waarden bevat.
+
+    In onderstaande query wordt er gebruik gemaakt van een CTE. Allereerst wordt de huidige ID vastgesteld. Vervolgens wordt er in deze
+    CTE gebruik gemaakt van een LAG functie, waardoor het verschil tussen de huidige ID en de vorige ID in de resultset kan worden vastgesteld.
+    Hierna wordt de grootte van dit verschil berekend door de vorige ID van de huidige ID af te trekken. Dit levert een waarde op welke
+    de maximale reeks met lege waarden bevat.
+
 \lstinputlisting[language=SQL]{sql/marc/opdracht-01-05b.sql}
 \begin{figure}[H]
     \centering

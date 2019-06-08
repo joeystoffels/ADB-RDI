@@ -1,8 +1,8 @@
 \subsection{Opdracht 01}
 
 Geef van een film, de hele reeks waar die bij hoort met volgnummer en in de juiste volgorde.
-Indien hij niet in een reeks zit, is de lijst gewoon één lang met volgnummer 1.
-Dit moet één statement worden die van een variabel ID de reeks geeft zoals onderstaand voorbeeld:
+Indien hij niet in een reeks zit, is de lijst gewoon ï¿½ï¿½n lang met volgnummer 1.
+Dit moet ï¿½ï¿½n statement worden die van een variabel ID de reeks geeft zoals onderstaand voorbeeld:
 DECLARE @MovieInReeks INT = 207989;
 
 
@@ -17,7 +17,10 @@ ITEM_ID		TITLE				Volgnummer
 
 \subsubsection{Versie 01}
 
-TODO: Marc
+    Binnen deze versie is er gebruik gemaakt van een recursieve CTE. Middels een UNION worden de eerste twee SELECT statements
+    met elkaar verbonden. Deze vormen de resultset voor het recursieve gedeelte van deze CTE welke zich onder de UNION ALL bevindt.
+    Voor de gehele resultset wordt middels de ROW_NUMBER functie het volgnummer van de film bepaald, waarbij de oudste film is voorzien
+    van volgnummer 1.
 
 \lstinputlisting[language=SQL]{sql/marc/opdracht-01-01.sql}
 \begin{figure}
