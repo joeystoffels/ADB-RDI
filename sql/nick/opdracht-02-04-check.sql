@@ -4,60 +4,40 @@
 --  --------------------------------------------------------
 
 USE odisee;
-GO
-DROP TRIGGER IF EXISTS TR_WatchMovieInPeriod;
-DROP PROCEDURE IF EXISTS SP_DemoData; 
-GO
-
+GO;
 --  --------------------------------------------------------
---  Trigger
+--  Check procedure
 --  --------------------------------------------------------
-CREATE TRIGGER TR_WatchMovieInPeriod ON Purchase
-AFTER INSERT, UPDATE
+CREATE FUNCTION dbo.IsPurchaseInSubscriptionPeriod
+(@email_address EMAIL ,@purchase_date DATE
+)
+RETURNS BIT
 AS
      BEGIN
-         SET NOCOUNT ON; -- Stops the message that shows the count of the number of rows affected
-         -- Declare variables
-         DECLARE @email_address NVARCHAR(4000);
-         DECLARE @purchase_date DATE;
-         IF NOT EXISTS
-         (
-             SELECT *
-             FROM inserted
-         )
-             RETURN; -- If nothing is inserted
-         BEGIN TRY
-             SET @email_address =
-             (
-                 SELECT email_address
-                 FROM inserted
-             );
-             SET @purchase_date =
-             (
-                 SELECT purchase_date
-                 FROM inserted
-             );
-             IF NOT EXISTS
-             (
-                 SELECT 'Subscription'
-                 FROM User_Subscription
-                 WHERE email_address = @email_address
-                       AND subscription_startdate <= @purchase_date
-                       AND ISNULL(subscription_enddate, '2099-12-31') >= @purchase_date
-             )
-                 THROW 50001, 'Product can not be purchased outside a subscription period', 1;
-         END TRY
-         BEGIN CATCH
-             THROW; -- Using TROW handles ROLLBACK and bubbles up the thrown error.
-         END CATCH;
+         DECLARE @count SMALLINT;
+         DECLARE @return BIT;
+         SELECT @count = COUNT(email_address)
+         FROM User_Subscription
+         WHERE email_address = @email_address
+               AND subscription_startdate <= @purchase_date
+               AND ISNULL(subscription_enddate, '2099-12-31') >= @purchase_date;
+         IF(@count = 0)
+             SET @return = 'false';
+             ELSE
+             SET @return = 'true';
+         RETURN @return;
      END;
-	 GO
+    GO
+
+ALTER TABLE Purchase
+ADD CONSTRAINT CK_CheckPurchaseInSubscription CHECK(dbo.IsPurchaseInSubscriptionPeriod(email_address, purchase_date) = 'true');
+GO
 
 --  --------------------------------------------------------
 --  Demo data
 --  --------------------------------------------------------
 
-CREATE PROCEDURE SP_DemoData
+CREATE PROCEDURE SP_InsertDemoData
 AS
     BEGIN
         SET NOCOUNT ON;
@@ -66,7 +46,7 @@ AS
         DECLARE @endDate01 DATE= '2018-03-01';
         DECLARE @startDate02 DATE= '2018-05-01';
         DECLARE @endDate02 DATE= '2019-05-01';
-		DECLARE @startDate03 DATE= '2019-06-01';
+        DECLARE @startDate03 DATE= '2019-06-01';
         INSERT INTO [User]
         VALUES
         (@email, 
@@ -94,14 +74,31 @@ AS
          @startDate02, 
          @endDate02, 
          3.00
-        ),  (@email, 
+        ),
+        (@email, 
          'The Netherlands', 
          'Basic', 
          'Basic', 
          @startDate03, 
-         Null, 
+         NULL, 
          3.00
         );
+    END;
+GO
+CREATE PROCEDURE SP_DeleteDemoData
+AS
+    BEGIN
+        SET NOCOUNT ON;
+        DECLARE @email NVARCHAR(4000)= 'test@test.nl';
+        DECLARE @startDate01 DATE= '2017-03-01';
+        DECLARE @endDate01 DATE= '2018-03-01';
+        DECLARE @startDate02 DATE= '2018-05-01';
+        DECLARE @endDate02 DATE= '2019-05-01';
+        DECLARE @startDate03 DATE= '2019-06-01';
+        DELETE FROM [User]
+        WHERE email_address = @email;
+        DELETE FROM User_Subscription
+        WHERE email_address = @email;
     END;
 GO
 
@@ -115,7 +112,6 @@ GO
 -- [05] Film valt tussen abbonementsperiode's in
 -- [06] Film valt in een periode waarin er geen einddag bekend is.
 -- [07] Film valt in meerdere abonnementperiodes
-
 --  --------------------------------------------------------
 --  Testscenario's
 --  --------------------------------------------------------
@@ -131,7 +127,6 @@ VALUES
  3.00
 );
 ROLLBACK TRANSACTION;
-
 
 -- [Scenario 02] : Film valt na de abonnementperiode
 -- Result: Throw Error
@@ -214,6 +209,7 @@ ROLLBACK TRANSACTION;
 --  --------------------------------------------------------
 --  Cleanup
 --  --------------------------------------------------------
-DROP TRIGGER IF EXISTS TR_WatchMovieInPeriod;
-DROP PROCEDURE IF EXISTS SP_DemoData;  
+ALTER TABLE Purchase DROP CONSTRAINT IsPurchaseInSubscriptionPeriod;
+GO
+DROP FUNCTION IF EXISTS IsPurchaseInSubscriptionPeriod;
 GO
