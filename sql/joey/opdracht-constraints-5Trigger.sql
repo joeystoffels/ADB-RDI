@@ -69,12 +69,12 @@ END;
 
 
 
--- Trigger tests
--- Info: Execute the following statements one by one in sequence to check the SP.
+-- Trigger insert tests
+-- Info: Execute the following statements one by one in sequence to check the trigger.
 
 -- No scores given for any category, should throw error code 50001
 INSERT INTO Review
-VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'bla', 5);
+VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 5);
 
 -- Add a score for categoy Acting
 INSERT INTO Review_Category
@@ -82,7 +82,7 @@ VALUES (345635, 'joey.stoffels@gmail.com', 'Acting', 8);
 
 -- No score given for Plot, should throw error code 50003
 INSERT INTO Review
-VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'bla', 5);
+VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 5);
 
 -- Remove score for Acting
 DELETE FROM Review_Category
@@ -94,7 +94,7 @@ VALUES (345635, 'joey.stoffels@gmail.com', 'Plot', 8);
 
 -- No score given for Acting, should throw error code 50002
 INSERT INTO Review
-VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'bla', 5);
+VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 5);
 
 -- Now add a score for categoy Acting
 INSERT INTO Review_Category
@@ -102,7 +102,7 @@ VALUES (345635, 'joey.stoffels@gmail.com', 'Acting', 8);
 
 -- No score given for Music and Sound, should throw error code 50004
 INSERT INTO Review
-VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'bla', 5);
+VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 5);
 
 -- Now add a score for categoy Cinematography
 INSERT INTO Review_Category
@@ -110,7 +110,7 @@ VALUES (345635, 'joey.stoffels@gmail.com', 'Cinematography', 8);
 
 -- Cinematography now present, should succeed.
 INSERT INTO Review
-VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'bla', 5);
+VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 5);
 
 -- Remove added review
 DELETE FROM Review
@@ -126,7 +126,7 @@ VALUES (345635, 'joey.stoffels@gmail.com', 'Music and Sound', 8);
 
 -- Music and Sound now present, should succeed.
 INSERT INTO Review
-VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'bla', 5);
+VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 5);
 
 -- Cleanup actions
 DELETE FROM Review_Category
@@ -136,3 +136,47 @@ DELETE FROM Review
 WHERE product_id = 345635 AND email_address = 'joey.stoffels@gmail.com';
 
 
+-- Trigger update test
+-- Info: Execute the following statements one by one in sequence to check the trigger.
+INSERT INTO Review_Category
+VALUES (345635, 'joey.stoffels@gmail.com', 'Plot', 8),
+(345635, 'joey.stoffels@gmail.com', 'Acting', 8),
+(345635, 'joey.stoffels@gmail.com', 'Cinematography', 8);
+
+INSERT INTO Product
+VALUES	(9999998, 'Movie', null, 'testproduct', null, null, 2.00, 1998, null, null, null)
+
+INSERT INTO Review_Category
+VALUES (9999998, 'joey.stoffels@gmail.com', 'Plot', 8),
+(9999998, 'joey.stoffels@gmail.com', 'Acting', 8);
+
+INSERT INTO Review
+VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 5);
+
+-- No score given for Music and Sound or cinematography, should throw error code 50004
+UPDATE Review
+SET product_id = 9999998
+WHERE product_id = 345635 AND email_address = 'joey.stoffels@gmail.com';
+
+-- Now add a Cinematography score
+INSERT INTO Review_Category
+VALUES (9999998, 'joey.stoffels@gmail.com', 'Cinematography', 8);
+
+-- Should succeed since it now meets the conditions
+UPDATE Review
+SET product_id = 9999998
+WHERE product_id = 345635 AND email_address = 'joey.stoffels@gmail.com';
+
+-- Check if update succeeded
+SELECT * FROM Review WHERE product_id = 9999998;
+
+-- Clean up
+DELETE FROM Review
+WHERE product_id = 9999998
+
+DELETE FROM Review_Category
+WHERE product_id = 9999998 OR product_id = 345635
+AND email_address = 'joey.stoffels@gmail.com'
+
+DELETE FROM Product
+WHERE product_id = 9999998
