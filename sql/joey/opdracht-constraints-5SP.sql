@@ -1,88 +1,106 @@
--- Constraint #5, Trigger uitwerking
+-- Constraint #5, Stored Procedure uitwerking
 -- Voor een geldige film recensie zijn cijfers voor Plot en Acting verplicht
--- en dient minimaal een van de rubrieken Cinematography en Music and Sound te
--- worden beoordeeld. Als hieraan is voldaan, dan wordt de recensie geaccepteerd
--- en wordt het totaalcijfer berekend.
+-- en dient minimaal een van de rubrieken Cinematography en Music and Sound te 
+-- worden beoordeeld. Als hieraan is voldaan, dan wordt de recensie geaccepteerd 
+-- en wordt het totaalcijfer berekend. 
 
 -- Drop constraint on Review if exists
 ALTER TABLE [dbo].[Review] DROP CONSTRAINT IF EXISTS [CK_category_filled_check]
 GO
 
+-- Drop trigger on Review if exists
 DROP TRIGGER IF EXISTS TR_Review_AI_AU
 GO
-CREATE TRIGGER TR_Review_AI_AU ON Review
-AFTER INSERT, UPDATE
+
+DROP PROCEDURE IF EXISTS USP_Review_Insert
+GO
+CREATE PROCEDURE USP_Review_Insert (
+	@ProductID INT,
+	@EmailAddress VARCHAR(255),
+	@ReviewDate DATE,
+	@Description VARCHAR(255),
+	@AverageScore INT
+)
 AS
-BEGIN
+	SET NOCOUNT, XACT_ABORT ON
 
-	SET NOCOUNT ON;
-
-	IF NOT EXISTS (SELECT * FROM Inserted) RETURN;
+	--SET TRANSACTION ISOLATION LEVEL ...
+	BEGIN TRANSACTION;
 
 	BEGIN TRY
 
 		IF NOT EXISTS (
-			SELECT *
+			SELECT * 
 			FROM Review_Category RC
-			INNER JOIN Inserted I ON RC.product_id = I.product_id
-			AND RC.email_address = I.email_address)
+			WHERE RC.product_id = @ProductID
+			AND RC.email_address = @EmailAddress)
 
 		THROW 50001, 'No matching scores found for any category.', 1;
 
 		IF NOT EXISTS (
-			SELECT *
+			SELECT * 
 			FROM Review_Category RC
-			INNER JOIN Inserted I ON RC.product_id = I.product_id
-			AND RC.email_address = I.email_address
-			WHERE RC.category_name = 'Acting'
+			WHERE RC.product_id = @ProductID
+			AND RC.email_address = @EmailAddress
+			AND RC.category_name = 'Acting' 
 			AND RC.score IS NOT NULL)
 
 		THROW 50002, 'Score for category Acting is missing', 1;
 
 		IF NOT EXISTS (
-			SELECT *
+			SELECT * 
 			FROM Review_Category RC
-			INNER JOIN Inserted I ON RC.product_id = I.product_id
-			AND RC.email_address = I.email_address
-			WHERE RC.category_name = 'Plot'
+			WHERE RC.product_id = @ProductID
+			AND RC.email_address = @EmailAddress
+			AND RC.category_name = 'Plot' 
 			AND RC.score IS NOT NULL)
 
 		THROW 50003, 'Score for category Plot is missing', 1;
 
 		IF NOT EXISTS (
-			SELECT *
+			SELECT * 
 			FROM Review_Category RC
-			INNER JOIN Inserted I ON RC.product_id = I.product_id
-			AND RC.email_address = I.email_address
-			WHERE RC.category_name = 'Cinematography'
-			OR RC.category_name = 'Music and Sound'
+			WHERE RC.product_id = @ProductID
+			AND RC.email_address = @EmailAddress
+			AND RC.category_name = 'Cinematography' 
+			OR RC.category_name = 'Music and Sound' 
 			AND RC.score IS NOT NULL)
 
 		THROW 50004, 'Score for category Cinematography or Music and Sound is missing', 1;
+		INSERT INTO Review
+		VALUES (@ProductId, @EmailAddress,
+				@ReviewDate, @Description,
+				@AverageScore)
 
+		COMMIT TRANSACTION;
 	END TRY
 	BEGIN CATCH
-		PRINT 'In catch block of TR_Review_AI_AU';
+		IF XACT_STATE() <> 0 ROLLBACK TRANSACTION;
 		THROW;
 	END CATCH
-END;
+GO
 
 
-
--- Trigger tests
--- Info: Execute the following statements one by one in sequence to check the SP.
+-- SP insert tests
+/*
+	@ProductID INT,
+	@EmailAddress VARCHAR(255),
+	@ReviewDate DATE,
+	@Description VARCHAR(255),
+	@AverageScore INT
+*/
 
 -- No scores given for any category, should throw error code 50001
-INSERT INTO Review
-VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'bla', 5);
+DECLARE @DATE DATE = GETDATE();
+EXEC USP_Review_Insert 345635, 'joey.stoffels@gmail.com', @DATE, 'description', 8;
 
 -- Add a score for categoy Acting
 INSERT INTO Review_Category
 VALUES (345635, 'joey.stoffels@gmail.com', 'Acting', 8);
 
 -- No score given for Plot, should throw error code 50003
-INSERT INTO Review
-VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'bla', 5);
+-- DECLARE @DATE DATE = GETDATE();
+EXEC USP_Review_Insert 345635, 'joey.stoffels@gmail.com', @DATE, 'description', 8;
 
 -- Remove score for Acting
 DELETE FROM Review_Category
@@ -93,24 +111,24 @@ INSERT INTO Review_Category
 VALUES (345635, 'joey.stoffels@gmail.com', 'Plot', 8);
 
 -- No score given for Acting, should throw error code 50002
-INSERT INTO Review
-VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'bla', 5);
+-- DECLARE @DATE DATE = GETDATE();
+EXEC USP_Review_Insert 345635, 'joey.stoffels@gmail.com', @DATE, 'description', 8;
 
 -- Now add a score for categoy Acting
 INSERT INTO Review_Category
 VALUES (345635, 'joey.stoffels@gmail.com', 'Acting', 8);
 
 -- No score given for Music and Sound, should throw error code 50004
-INSERT INTO Review
-VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'bla', 5);
+-- DECLARE @DATE DATE = GETDATE();
+EXEC USP_Review_Insert 345635, 'joey.stoffels@gmail.com', @DATE, 'description', 8;
 
 -- Now add a score for categoy Cinematography
 INSERT INTO Review_Category
 VALUES (345635, 'joey.stoffels@gmail.com', 'Cinematography', 8);
 
 -- Cinematography now present, should succeed.
-INSERT INTO Review
-VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'bla', 5);
+-- DECLARE @DATE DATE = GETDATE();
+EXEC USP_Review_Insert 345635, 'joey.stoffels@gmail.com', @DATE, 'description', 8;
 
 -- Remove added review
 DELETE FROM Review
@@ -118,15 +136,15 @@ WHERE product_id = 345635 AND email_address = 'joey.stoffels@gmail.com';
 
 -- Remove score for Cinematography
 DELETE FROM Review_Category
-WHERE product_id = 345635 AND category_name = 'Cinematography'
+WHERE product_id = 345635 AND category_name = 'Cinematography' 
 
 -- Add a score for categoy Music and Sound
 INSERT INTO Review_Category
 VALUES (345635, 'joey.stoffels@gmail.com', 'Music and Sound', 8);
 
 -- Music and Sound now present, should succeed.
-INSERT INTO Review
-VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'bla', 5);
+-- DECLARE @DATE DATE = GETDATE();
+EXEC USP_Review_Insert 345635, 'joey.stoffels@gmail.com', @DATE, 'description', 8;
 
 -- Cleanup actions
 DELETE FROM Review_Category
@@ -134,5 +152,3 @@ WHERE product_id = 345635 AND email_address = 'joey.stoffels@gmail.com'
 
 DELETE FROM Review
 WHERE product_id = 345635 AND email_address = 'joey.stoffels@gmail.com';
-
-
