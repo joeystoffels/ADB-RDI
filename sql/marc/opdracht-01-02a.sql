@@ -15,7 +15,7 @@ SELECT YEAR(P.purchase_date) AS Year,
 			(100 / (CONVERT(DECIMAL(4, 2), COUNT(*))))) * COUNT(*), '%') AS PercentageOfTotal
 FROM Purchase P
      INNER JOIN [User] AS U ON P.email_address = U.email_address
-WHERE U.country_name = 'The Netherlands'
+WHERE U.country_name = @Country
       AND ((YEAR(P.purchase_date) = @Year
                       AND MONTH(P.purchase_date) <= @Month)
                      OR (YEAR(P.purchase_date) = (@Year - 1)
