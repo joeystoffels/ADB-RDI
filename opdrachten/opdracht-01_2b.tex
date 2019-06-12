@@ -1,8 +1,5 @@
 \subsection{Opdracht 02b}
-
-\paragraph{
 Een mooier alternatief is een statement dat per land de percentages en totalen geeft over een jaar in kolommen.
-}
 
 \begin{lstlisting}
     -- jouw statement hier levert b.v. onderstaand resultaat voor 2017
@@ -14,5 +11,60 @@ Een mooier alternatief is een statement dat per land de percentages en totalen g
     Netherlands   8.38%    7.26%    8.94%    8.38%   8.38%   7.82%   8.94%    8.38%    8.38%     8.38%     8.38%    8.38%      716
 \end{lstlisting}
 
-\lstinputlisting[language=SQL]{sql/nick/opdracht-02b.sql}
-\lstinputlisting[language=SQL]{sql/marc/opdracht-02b.sql}
+\subsubsection{Versie 01}
+TODO: Nick
+\lstinputlisting[language=SQL]{sql/nick/opdracht-01-02b-v1.sql}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{image/nick/opdracht-02b.PNG}
+    \caption{Queryplan Opdracht 02b Versie 01}
+\end{figure}
+
+\subsubsection{Versie 02}
+
+    In onderstaande versie wordt er gebruik gemaakt van een PIVOT. Bij een PIVOT worden rijen omgezet naar kolommen. Indien er geen verkopen
+    zijn in een bepaalde maand, dan wordt er een standaard waarde van 0.00\% getoond. Door in de FROM clausule de juiste set met gegevens
+    aan te leveren, wordt in het SELECT statement enkel en alleen nog de gewenste informatie uit de juiste kolommen opgevraagd.
+
+\lstinputlisting[language=SQL]{sql/marc/opdracht-01-02b.sql}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{image/marc/opdracht-02b.PNG}
+    \caption{Queryplan Opdracht 02b Versie 02}
+\end{figure}
+
+\subsection{Conclusie}
+Versie 01 presteert met 22\% van de totale duur van de gehele batch aanzienlijk sneller dan versie 02 welke 78\% van de duur nodig heeft.
+Uit het queryplan wordt duidelijk dat versie 02 in het beginstadium net iets beter presteert. Deze voert een 'Index Seek (NonClustered)' uit
+voor 2 van de 11 records in de User tabel. Hetzelfde geldt voor de 'RID Lookup (Heap)' welke eveneens voor 2 van de 11 records informatie
+uit de User tabel ophaalt. Na deze stap doorloopt versie 01 echter een eenvoudig proces zonder extra 'Nested Loops' en de extra ballast
+welke hieraan vooraf gaat zoals een 'Filter', 'Clustered Index Scan' en een 'Table Scan'. Derhalve kan worden gesteld dat versie 01
+beter preseteert dan versie 02. De onderhoudbaarheid van versie 01 is eveneens beter dan die van versie 02, niet alleen omdat de structuur
+helder en overzichtelijk is, maar ook vanwege het gebruik van een CTE waardoor een duidelijke resultset terug wordt gegeven.\\
+\\
+\begin{tabular}{ || l | l | l | l | l | l | l | l | l | l | l | l | 1 | 1 | l | 1 | 1 || }
+    \hline
+    \textbf{Statement} & \textbf{Est Cost \%} & \textbf{Compile Time} & \textbf{Duration} &
+    \textbf{CPU} & \textbf{Est CPU Cost \%} &
+    \textbf{Est IO Cost \%} \\
+    \hline
+    \hline
+    Versie01  & 22,5\%  & 12  & 2  & 2  & 9,8\% & 28,9\% \\
+    \hline
+    Versie02  & 77,5\%  & 35  & 8  & 3  & 90,2\% & 71,1\%  \\
+    \hline
+\end{tabular}
+\newline
+\newline
+\begin{tabular}{ || l | l | l | l | l | l | l | l | l | l | l | l | 1 | 1 | l | 1 | 1 || }
+    \hline
+    \textbf{Statement} &  \textbf{Est Rows} & \textbf{Actual Rows} & \textbf{RID Lookups} &
+    \textbf{Parallel} & \textbf{Sort} &
+    \textbf{Table Scan} & \textbf{Hash Match} \\
+    \hline
+    \hline
+    Versie01  & 2  & 2  & 1  & 0  & 1  & 0  & 0 \\
+    \hline
+    Versie02  & 2  & 2  & 3  & 0  & 1  & 1  & 0 \\
+    \hline
+\end{tabular}
