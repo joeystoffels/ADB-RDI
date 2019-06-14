@@ -12,6 +12,9 @@ AFTER INSERT, UPDATE
 AS
 BEGIN
 
+    SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+	BEGIN TRANSACTION;
+
 	SET NOCOUNT ON;
 
 	-- Trigger should only process if ProductType = 'Movie' and previous_product_id is not null.
@@ -42,6 +45,8 @@ BEGIN
 		PRINT 'In catch block of TR_Products_AI_AU';
 		THROW;
 	END CATCH
+
+	COMMIT TRANSACTION;
 END;
 
 

@@ -23,6 +23,10 @@ CREATE PROCEDURE USP_Products_Insert (
 	@Url VARCHAR(255)
 )
 AS
+
+    SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+	BEGIN TRANSACTION;
+
 	SET NOCOUNT, XACT_ABORT ON
 
 	-- SP should only process if @ProductType = 'Movie' and @PreviousProductId is not null.
@@ -61,6 +65,8 @@ AS
 		IF XACT_STATE() <> 0 ROLLBACK TRANSACTION;
 		THROW;
 	END CATCH
+
+	COMMIT TRANSACTION;
 GO
 
 
