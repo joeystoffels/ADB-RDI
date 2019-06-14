@@ -88,16 +88,14 @@ GO
 -- Scenario 01
 -- Insert review (movie) met één juiste category
 -- Result: Success
-BEGIN TRANSACTION
-
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id) FROM Product WHERE product_type = 'Movie')
 
 INSERT INTO Review_Category
 VALUES (@PRID, 'testdata@han.nl', 'Acting', 9)
 
 SELECT * FROM Review_Category WHERE product_id = @PRID
-
-ROLLBACK TRANSACTION
+ROLLBACK TRANSACTION;
 
 --  --------------------------------------------------------
 --  Testscenario's
@@ -105,15 +103,13 @@ ROLLBACK TRANSACTION
 -- Scenario 02
 -- Insert review (movie) met één onjuiste category
 -- Result: Throw Error
-BEGIN TRANSACTION
-
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id) FROM Product WHERE product_type = 'Movie')
 
 PRINT 'Hier verwachten we een foutmelding'
 INSERT INTO Review_Category
 VALUES (@PRID, 'testdata@han.nl', 'Gameplay', 6)
-
-ROLLBACK TRANSACTION
+ROLLBACK TRANSACTION;
 
 --  --------------------------------------------------------
 --  Testscenario's
@@ -121,8 +117,7 @@ ROLLBACK TRANSACTION
 -- Scenario 03
 -- Insert review (movie) met twee juiste categories
 -- Result: Success
-BEGIN TRANSACTION
-
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id) FROM Product WHERE product_type = 'Movie')
 
 INSERT INTO Review_Category
@@ -132,8 +127,7 @@ INSERT INTO Review_Category
 VALUES (@PRID, 'testdata@han.nl', 'Plot', 5)
 
 SELECT * FROM Review_Category WHERE product_id = @PRID
-
-ROLLBACK TRANSACTION
+ROLLBACK TRANSACTION;
 
 --  --------------------------------------------------------
 --  Testscenario's
@@ -141,16 +135,14 @@ ROLLBACK TRANSACTION
 -- Scenario 04
 -- Insert review (game) met één juiste category
 -- Result: Success
-BEGIN TRANSACTION
-
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id) FROM Product WHERE product_type = 'Game')
 
 INSERT INTO Review_Category
 VALUES (@PRID, 'testdata@han.nl', 'Gameplay', 9)
 
 SELECT * FROM Review_Category WHERE product_id = @PRID
-
-ROLLBACK TRANSACTION
+ROLLBACK TRANSACTION;
 
 --  --------------------------------------------------------
 --  Testscenario's
@@ -158,15 +150,13 @@ ROLLBACK TRANSACTION
 -- Scenario 05
 -- Insert review (game) met één onjuiste category
 -- Result: Throw Error
-BEGIN TRANSACTION
-
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id) FROM Product WHERE product_type = 'Game')
 
 PRINT 'Hier verwachten we een foutmelding'
 INSERT INTO Review_Category
 VALUES (@PRID, 'testdata@han.nl', 'Plot', 6)
-
-ROLLBACK TRANSACTION
+ROLLBACK TRANSACTION;
 
 --  --------------------------------------------------------
 --  Testscenario's
@@ -174,8 +164,7 @@ ROLLBACK TRANSACTION
 -- Scenario 06
 -- Insert review (game) met twee juiste categories
 -- Result: Success
-BEGIN TRANSACTION
-
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id) FROM Product WHERE product_type = 'Game')
 
 INSERT INTO Review_Category
@@ -185,5 +174,4 @@ INSERT INTO Review_Category
 VALUES (@PRID, 'testdata@han.nl', 'Challenge', 5)
 
 SELECT * FROM Review_Category WHERE product_id = @PRID
-
-ROLLBACK TRANSACTION
+ROLLBACK TRANSACTION;

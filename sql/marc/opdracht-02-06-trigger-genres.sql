@@ -115,8 +115,7 @@ GO
 -- Scenario 01
 -- Insert product zonder genre (krijgt standaard genre 'No genre allocated' toegekend)
 -- Result: Success
-BEGIN TRANSACTION
-
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
 
 INSERT INTO Product (product_id, product_type, title, movie_default_price)
@@ -127,8 +126,7 @@ FROM Product AS p
 	INNER JOIN Product_Genre AS pg 
 		ON p.product_id=pg.product_id 
 WHERE p.product_id=@PRID;
-
-ROLLBACK TRANSACTION
+ROLLBACK TRANSACTION;
 
 --  --------------------------------------------------------
 --  Testscenario's
@@ -136,8 +134,7 @@ ROLLBACK TRANSACTION
 -- Scenario 02
 -- Insert product (movie) met één geldige genre
 -- Result: Success
-BEGIN TRANSACTION
-
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
 
 INSERT INTO Product (product_id, product_type, title, movie_default_price)
@@ -151,8 +148,7 @@ FROM Product AS p
 	INNER JOIN Product_Genre AS pg 
 		ON p.product_id=pg.product_id 
 WHERE p.product_id=@PRID;
-
-ROLLBACK TRANSACTION
+ROLLBACK TRANSACTION;
 
 --  --------------------------------------------------------
 --  Testscenario's
@@ -160,8 +156,7 @@ ROLLBACK TRANSACTION
 -- Scenario 03
 -- Insert product (movie) met één ongeldige genre, resulteert in foutmelding
 -- Result: Throw Error
-BEGIN TRANSACTION
-
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
 
 INSERT INTO Product (product_id, product_type, title, movie_default_price)
@@ -176,8 +171,7 @@ FROM Product AS p
 	INNER JOIN Product_Genre AS pg 
 		ON p.product_id=pg.product_id 
 WHERE p.product_id=@PRID;
-
-ROLLBACK TRANSACTION
+ROLLBACK TRANSACTION;
 
 --  --------------------------------------------------------
 --  Testscenario's
@@ -185,8 +179,7 @@ ROLLBACK TRANSACTION
 -- Scenario 04
 -- Insert product (game) met één geldige genre
 -- Result: Success
-BEGIN TRANSACTION
-
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
 
 INSERT INTO Product (product_id, product_type, title, movie_default_price)
@@ -200,8 +193,7 @@ FROM Product AS p
 	INNER JOIN Product_Genre AS pg 
 		ON p.product_id=pg.product_id 
 WHERE p.product_id=@PRID;
-
-ROLLBACK TRANSACTION
+ROLLBACK TRANSACTION;
 
 --  --------------------------------------------------------
 --  Testscenario's
@@ -209,8 +201,7 @@ ROLLBACK TRANSACTION
 -- Scenario 05
 -- Insert product (game) met één ongeldige genre, resulteert in foutmelding
 -- Result: Throw Error
-BEGIN TRANSACTION
-
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
 
 INSERT INTO Product (product_id, product_type, title, movie_default_price)
@@ -225,8 +216,7 @@ FROM Product AS p
 	INNER JOIN Product_Genre AS pg 
 		ON p.product_id=pg.product_id 
 WHERE p.product_id=@PRID;
-
-ROLLBACK TRANSACTION
+ROLLBACK TRANSACTION;
 
 --  --------------------------------------------------------
 --  Testscenario's
@@ -234,8 +224,7 @@ ROLLBACK TRANSACTION
 -- Scenario 06
 -- Insert twee producten (movie) met één geldige genre
 -- Result: Success
-BEGIN TRANSACTION
-
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
 
 INSERT INTO Product (product_id, product_type, title, movie_default_price)
@@ -263,8 +252,7 @@ FROM Product AS p
 	INNER JOIN Product_Genre AS pg 
 		ON p.product_id=pg.product_id 
 WHERE p.product_id=@PRID
-
-ROLLBACK TRANSACTION
+ROLLBACK TRANSACTION;
 
 --  --------------------------------------------------------
 --  Testscenario's
@@ -272,8 +260,7 @@ ROLLBACK TRANSACTION
 -- Scenario 07
 -- Insert twee producten (movie) met twee geldige genres
 -- Result: Success
-BEGIN TRANSACTION
-
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
 
 INSERT INTO Product (product_id, product_type, title, movie_default_price)
@@ -307,8 +294,7 @@ FROM Product AS p
 	INNER JOIN Product_Genre AS pg 
 		ON p.product_id=pg.product_id 
 WHERE p.product_id=@PRID
-
-ROLLBACK TRANSACTION
+ROLLBACK TRANSACTION;
 
 --  --------------------------------------------------------
 --  Testscenario's
@@ -316,8 +302,7 @@ ROLLBACK TRANSACTION
 -- Scenario 08
 -- Insert twee producten (game) met één geldige genre
 -- Result: Success
-BEGIN TRANSACTION
-
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
 
 INSERT INTO Product (product_id, product_type, title, movie_default_price)
@@ -345,8 +330,7 @@ FROM Product AS p
 	INNER JOIN Product_Genre AS pg 
 		ON p.product_id=pg.product_id 
 WHERE p.product_id=@PRID
-
-ROLLBACK TRANSACTION
+ROLLBACK TRANSACTION;
 
 --  --------------------------------------------------------
 --  Testscenario's
@@ -354,8 +338,7 @@ ROLLBACK TRANSACTION
 -- Scenario 09
 -- Insert twee producten (game) met twee geldige genres
 -- Result: Success
-BEGIN TRANSACTION
-
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
 
 INSERT INTO Product (product_id, product_type, title, movie_default_price)
@@ -389,8 +372,7 @@ FROM Product AS p
 	INNER JOIN Product_Genre AS pg 
 		ON p.product_id=pg.product_id 
 WHERE p.product_id=@PRID
-
-ROLLBACK TRANSACTION
+ROLLBACK TRANSACTION;
 
 --  --------------------------------------------------------
 --  Testscenario's
@@ -398,8 +380,7 @@ ROLLBACK TRANSACTION
 -- Scenario 10
 -- Update product (movie) met een geldige genre
 -- Result: Success
-BEGIN TRANSACTION
-
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
 
 INSERT INTO Product (product_id, product_type, title, movie_default_price)
@@ -415,8 +396,7 @@ SET genre_name = 'Horror'
 WHERE product_id = @PRID
 
 SELECT * FROM Product_Genre WHERE product_id = @PRID
-
-ROLLBACK TRANSACTION
+ROLLBACK TRANSACTION;
 
 --  --------------------------------------------------------
 --  Testscenario's
@@ -424,8 +404,7 @@ ROLLBACK TRANSACTION
 -- Scenario 11
 -- Update product (movie) met een ongeldige genre
 -- Result: Throw Error
-BEGIN TRANSACTION
-
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
 
 INSERT INTO Product (product_id, product_type, title, movie_default_price)
@@ -442,8 +421,7 @@ SET genre_name = 'Action-Adventure'
 WHERE product_id = @PRID
 
 SELECT * FROM Product_Genre WHERE product_id = @PRID
-
-ROLLBACK TRANSACTION
+ROLLBACK TRANSACTION;
 
 --  --------------------------------------------------------
 --  Testscenario's
@@ -451,8 +429,7 @@ ROLLBACK TRANSACTION
 -- Scenario 12
 -- Update product (game) met een geldige genre
 -- Result: Success
-BEGIN TRANSACTION
-
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
 
 INSERT INTO Product (product_id, product_type, title, movie_default_price)
@@ -468,8 +445,7 @@ SET genre_name = 'Simulation'
 WHERE product_id = @PRID
 
 SELECT * FROM Product_Genre WHERE product_id = @PRID
-
-ROLLBACK TRANSACTION
+ROLLBACK TRANSACTION;
 
 --  --------------------------------------------------------
 --  Testscenario's
@@ -477,8 +453,7 @@ ROLLBACK TRANSACTION
 -- Scenario 12
 -- Update product (game) met een ongeldige genre
 -- Result: Throw Error
-BEGIN TRANSACTION
-
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
 
 INSERT INTO Product (product_id, product_type, title, movie_default_price)
@@ -495,5 +470,4 @@ SET genre_name = 'Romance'
 WHERE product_id = @PRID
 
 SELECT * FROM Product_Genre WHERE product_id = @PRID
-
-ROLLBACK TRANSACTION
+ROLLBACK TRANSACTION;

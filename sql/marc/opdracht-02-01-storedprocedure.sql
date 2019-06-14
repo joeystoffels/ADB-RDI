@@ -129,7 +129,7 @@ BEGIN
 -- Scenario 01
 -- Insert product zonder genre
 -- Result: Success
-BEGIN TRANSACTION
+BEGIN TRANSACTION;
 
 DECLARE @GenreTableType GenreTableType
 DECLARE @ProductTitle TITLE = 'Product zonder genres'
@@ -142,7 +142,7 @@ FROM Product AS p
 		ON p.product_id=pg.product_id
 WHERE p.product_id = (SELECT MAX(product_id) FROM Product)
 
-ROLLBACK TRANSACTION
+ROLLBACK TRANSACTION;
 
 --  --------------------------------------------------------
 --  Testscenario's
@@ -150,7 +150,7 @@ ROLLBACK TRANSACTION
 -- Scenario 02
 -- Insert product met één genre
 -- Result: Success
-BEGIN TRANSACTION
+BEGIN TRANSACTION;
 
 DECLARE @GenreTableType GenreTableType
 DECLARE @ProductTitle TITLE = 'Product met één genre'
@@ -166,7 +166,7 @@ FROM Product AS p
 		ON p.product_id=pg.product_id
 WHERE p.product_id = (SELECT MAX(product_id) FROM Product)
 
-ROLLBACK TRANSACTION
+ROLLBACK TRANSACTION;
 
 --  --------------------------------------------------------
 --  Testscenario's
@@ -174,7 +174,7 @@ ROLLBACK TRANSACTION
 -- Scenario 03
 -- Insert product met twee genres
 -- Result: Success
-BEGIN TRANSACTION
+BEGIN TRANSACTION;
 
 DECLARE @GenreTableType GenreTableType
 DECLARE @ProductTitle TITLE = 'Product met twee genres'
@@ -190,7 +190,7 @@ FROM Product AS p
 		ON p.product_id=pg.product_id
 WHERE p.product_id = (SELECT MAX(product_id) FROM Product)
 
-ROLLBACK TRANSACTION
+ROLLBACK TRANSACTION;
 
 --  --------------------------------------------------------
 --  Testscenario's
@@ -198,7 +198,7 @@ ROLLBACK TRANSACTION
 -- Scenario 04
 -- Insert genre met verwijzing naar bestaand product
 -- Result: Success
-BEGIN TRANSACTION
+BEGIN TRANSACTION;
 
 DECLARE @GenreTableType GenreTableType
 DECLARE @PRID ID = (SELECT product_id FROM Product_Genre WHERE product_id = (SELECT MAX(product_id) FROM Product_Genre));
@@ -220,7 +220,7 @@ FROM Product AS p
 		ON p.product_id=pg.product_id
 WHERE p.product_id = @PRID
 
-ROLLBACK TRANSACTION
+ROLLBACK TRANSACTION;
 
 --  --------------------------------------------------------
 --  Testscenario's
@@ -228,7 +228,7 @@ ROLLBACK TRANSACTION
 -- Scenario 05
 -- Insert twee genres met verwijzing naar bestaand product
 -- Result: Success
-BEGIN TRANSACTION
+BEGIN TRANSACTION;
 
 DECLARE @GenreTableType GenreTableType
 DECLARE @PRID ID = (SELECT product_id FROM Product_Genre WHERE product_id = (SELECT MAX(product_id) FROM Product_Genre));
@@ -250,7 +250,7 @@ FROM Product AS p
 		ON p.product_id=pg.product_id
 WHERE p.product_id = @PRID
 
-ROLLBACK TRANSACTION
+ROLLBACK TRANSACTION;
 
 --  --------------------------------------------------------
 --  Testscenario's
@@ -258,7 +258,7 @@ ROLLBACK TRANSACTION
 -- Scenario 06
 -- Insert genre met verwijzing naar niet-bestaand product
 -- Result: Throw Error
-BEGIN TRANSACTION
+BEGIN TRANSACTION;
 
 DECLARE @GenreTableType GenreTableType
 DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
@@ -269,7 +269,7 @@ VALUES ('Action')
 PRINT 'Hier verwachten we een foutmelding.';
 EXEC spProductGenreInsert @PRID, @GenreTableType
 
-ROLLBACK TRANSACTION
+ROLLBACK TRANSACTION;
 
 --  --------------------------------------------------------
 --  Testscenario's
@@ -277,7 +277,7 @@ ROLLBACK TRANSACTION
 -- Scenario 07
 -- Insert twee producten zonder genre
 -- Result: Success
-BEGIN TRANSACTION
+BEGIN TRANSACTION;
 
 DECLARE @GenreTableType GenreTableType
 DECLARE @ProductTitle TITLE = 'Producten zonder genres (1/2)'
@@ -300,7 +300,7 @@ FROM Product AS p
 		ON p.product_id=pg.product_id
 WHERE p.product_id = (SELECT MAX(product_id) FROM Product)
 
-ROLLBACK TRANSACTION
+ROLLBACK TRANSACTION;
 
 --  --------------------------------------------------------
 --  Testscenario's
@@ -308,7 +308,7 @@ ROLLBACK TRANSACTION
 -- Scenario 08
 -- Insert twee producten met één genre
 -- Result: Success
-BEGIN TRANSACTION
+BEGIN TRANSACTION;
 
 DECLARE @GenreTableType GenreTableType
 DECLARE @ProductTitle TITLE = 'Producten met één genre (1/2)'
@@ -334,7 +334,7 @@ FROM Product AS p
 		ON p.product_id=pg.product_id
 WHERE p.product_id = (SELECT MAX(product_id) FROM Product)
 
-ROLLBACK TRANSACTION
+ROLLBACK TRANSACTION;
 
 --  --------------------------------------------------------
 --  Testscenario's
@@ -342,7 +342,7 @@ ROLLBACK TRANSACTION
 -- Scenario 09
 -- Insert twee producten met twee genres
 -- Result: Success
-BEGIN TRANSACTION
+BEGIN TRANSACTION;
 
 DECLARE @GenreTableType GenreTableType
 DECLARE @ProductTitle TITLE = 'Producten met twee genres (1/2)'
@@ -368,7 +368,7 @@ FROM Product AS p
 		ON p.product_id=pg.product_id
 WHERE p.product_id = (SELECT MAX(product_id) FROM Product)
 
-ROLLBACK TRANSACTION
+ROLLBACK TRANSACTION;
 
 --  --------------------------------------------------------
 --  Testscenario's
@@ -376,7 +376,7 @@ ROLLBACK TRANSACTION
 -- Scenario 10
 -- Verwijder genre van product (standaard genre 'No genre allocated' terugplaatsen)
 -- Result: Success
-BEGIN TRANSACTION
+BEGIN TRANSACTION;
 
 DECLARE @GenreTableType GenreTableType
 DECLARE @ProductTitle TITLE = 'Product met één genre om te verwijderen'
@@ -405,7 +405,7 @@ FROM Product AS p
 		ON p.product_id=pg.product_id
 WHERE p.product_id = @PRID
 
-ROLLBACK TRANSACTION
+ROLLBACK TRANSACTION;
 
 --  --------------------------------------------------------
 --  Testscenario's
@@ -413,7 +413,7 @@ ROLLBACK TRANSACTION
 -- Scenario 11
 -- Verwijder meerdere genres van product (standaard genre 'No genre allocated' terugplaatsen)
 -- Result: Success
-BEGIN TRANSACTION
+BEGIN TRANSACTION;
 
 DECLARE @GenreTableType GenreTableType
 DECLARE @ProductTitle TITLE = 'Product met twee genres om te verwijderen'
@@ -442,4 +442,4 @@ FROM Product AS p
 		ON p.product_id=pg.product_id
 WHERE p.product_id = @PRID
 
-ROLLBACK TRANSACTION
+ROLLBACK TRANSACTION;
