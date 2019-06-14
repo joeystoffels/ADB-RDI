@@ -14,18 +14,14 @@ SET STATISTICS TIME ON;
 SET STATISTICS IO ON;
 DECLARE @director INT= 65358;
 WITH GenreMoviesPerDirector
-     AS (SELECT P2.person_id, 
-                P2.first_name, 
-                P2.last_name, 
+     AS (SELECT P2.person_id,
                 PG.genre_name, 
                 COUNT(PG.genre_name) AS totalPerGenre
          FROM Movie_Director
               INNER JOIN Product P ON Movie_Director.product_id = P.product_id
               INNER JOIN Person P2 ON Movie_Director.person_id = P2.person_id
               INNER JOIN Product_Genre PG ON P.product_id = PG.product_id
-         GROUP BY P2.person_id, 
-                  P2.first_name, 
-                  P2.last_name, 
+         GROUP BY P2.person_id,
                   PG.genre_name
          HAVING P2.person_id = 65358),
      DirectorGenreProb
@@ -33,7 +29,7 @@ WITH GenreMoviesPerDirector
                 first_name, 
                 last_name, 
                 genre_name, 
-                CAST((totalPerGenre * 100 /
+                CAST((totalPerGenre * 100.0 /
          (
              SELECT SUM(totalPerGenre)
              FROM GenreMoviesPerDirector
