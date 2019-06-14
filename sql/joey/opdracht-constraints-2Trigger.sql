@@ -12,14 +12,14 @@ AFTER INSERT, UPDATE
 AS
 BEGIN
 
-    SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
-	BEGIN TRANSACTION;
-
 	SET NOCOUNT ON;
 
 	-- Trigger should only process if ProductType = 'Movie' and previous_product_id is not null.
 	IF EXISTS (SELECT product_type FROM inserted WHERE product_type != 'Movie') RETURN;
 	IF EXISTS (SELECT Product_Type FROM inserted WHERE previous_product_id IS NULL) RETURN;
+
+    SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+	BEGIN TRANSACTION;
 
 	BEGIN TRY
 		PRINT 'In try block of TR_Products_AI_AU';

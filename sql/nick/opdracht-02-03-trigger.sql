@@ -30,10 +30,12 @@ CREATE TRIGGER TR_No_Overlap_In_Subscriptions ON User_Subscription
 INSTEAD OF INSERT, UPDATE
 AS
      BEGIN
-        SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
-	    BEGIN TRANSACTION;
 
          SET NOCOUNT ON; -- Stops the message that shows the count of the number of rows affected
+
+         SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+	     BEGIN TRANSACTION;
+
          -- Declare variables
          DECLARE @email_address EMAIL;
          DECLARE @country_name COUNTRY;

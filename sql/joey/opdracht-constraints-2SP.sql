@@ -24,16 +24,13 @@ CREATE PROCEDURE USP_Products_Insert (
 )
 AS
 
-    SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
-	BEGIN TRANSACTION;
-
 	SET NOCOUNT, XACT_ABORT ON
 
 	-- SP should only process if @ProductType = 'Movie' and @PreviousProductId is not null.
 	IF @ProductType != 'Movie' RETURN;
 	IF @PreviousProductId IS NULL RETURN;
 
-	--SET TRANSACTION ISOLATION LEVEL ...
+	SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
 	BEGIN TRANSACTION;
 
 	BEGIN TRY
@@ -152,7 +149,6 @@ AS
 	IF @PreviousProductId IS NULL RETURN;
 	IF (SELECT product_type FROM Product WHERE product_id = @ProductID) != 'Movie' RETURN;
 
-	--SET TRANSACTION ISOLATION LEVEL ...
 	BEGIN TRANSACTION;
 
 	BEGIN TRY
