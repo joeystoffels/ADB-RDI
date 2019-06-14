@@ -4,7 +4,7 @@ SET STATISTICS TIME ON;
 SET STATISTICS IO ON;
 GO
 WITH cte
-     AS (SELECT P.product_id + 1 AS 'GapStart', -- +1 to exclude the current product_id in the GapStart
+     AS (SELECT P.product_id AS 'GapStart',
                 ISNULL(LEAD(P.product_id) OVER(
                 ORDER BY P.product_id), 0) AS 'GapEnd', 
                 ISNULL(LEAD(P.product_id) OVER(
