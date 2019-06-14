@@ -1,11 +1,14 @@
--- Constraint #2, Stored Procedure uitwerking
--- Bij een film met previous part, is de film later uitgebracht dan het previous part.
+USE odisee;
+GO
 
 DROP TRIGGER IF EXISTS TR_Products_AI_AU
+DROP PROCEDURE IF EXISTS USP_Products_Insert
+DROP PROCEDURE IF EXISTS USP_Products_Update_PreviousProductId
 GO
 
-DROP PROCEDURE IF EXISTS USP_Products_Insert
-GO
+--  --------------------------------------------------------
+--  Stored procedure
+--  --------------------------------------------------------
 CREATE PROCEDURE USP_Products_Insert (
 	@ProductID INT,
 	@ProductType VARCHAR(255),
@@ -20,13 +23,14 @@ CREATE PROCEDURE USP_Products_Insert (
 	@Url VARCHAR(255)
 )
 AS
+
 	SET NOCOUNT, XACT_ABORT ON
 
 	-- SP should only process if @ProductType = 'Movie' and @PreviousProductId is not null.
 	IF @ProductType != 'Movie' RETURN;
 	IF @PreviousProductId IS NULL RETURN;
 
-	--SET TRANSACTION ISOLATION LEVEL ...
+	SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
 	BEGIN TRANSACTION;
 
 	BEGIN TRY
@@ -58,6 +62,8 @@ AS
 		IF XACT_STATE() <> 0 ROLLBACK TRANSACTION;
 		THROW;
 	END CATCH
+
+	COMMIT TRANSACTION;
 GO
 
 
@@ -66,49 +72,83 @@ GO
 -- Assumption: Months and days are not stored, making us unable to determine if the previous_part was released
 -- before or after the current product, thus we assume that the same publication_year violates the trigger rules.
 
--- Should fail because its publication year is before 1999.
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 01
+-- Publication year is before 1999
+-- Result: Throw Error
+BEGIN TRANSACTION;
 EXEC USP_Products_Insert 9999998, 'Movie', 345635, 'Star Wars Latest', null, null, 2.00, 1998, null, null, null
+ROLLBACK TRANSACTION;
 
--- Should succeed because its publication year is after 1999.
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 02
+-- Publication year is after 1999
+-- Result: Success
+BEGIN TRANSACTION;
 EXEC USP_Products_Insert 9999999, 'Movie', 345635, 'Star Wars Latest', null, null, 2.00, 2000, null, null, null
+ROLLBACK TRANSACTION;
 
--- Rollback
-DELETE FROM PRODUCT WHERE product_id = 9999999
-
--- Should fail because it has the same publication year.
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 03
+-- Same publication year
+-- Result: Throw Error
+BEGIN TRANSACTION;
 EXEC USP_Products_Insert 9999999, 'Movie', 345635, 'Star Wars Latest', null, null, 2.00, 1999, null, null, null
+ROLLBACK TRANSACTION;
 
--- Should fail because previous part is of type 'Game'.
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 04
+-- Previous part is of type 'Game' instead of 'Movie'
+-- Result: Throw Error
+BEGIN TRANSACTION;
 EXEC USP_Products_Insert 9999999, 'Movie', 412331, 'Star Wars Latest', null, null, 2.00, 1999, null, null, null
+ROLLBACK TRANSACTION;
 
--- Should bypass SP and succeed because product type is not 'Movie'.
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 05
+-- Bypass SP because product type is not 'Movie'
+-- Result: Success
+BEGIN TRANSACTION;
 EXEC USP_Products_Insert 9999998, 'Game', 345635, 'Star Wars Latest', null, null, 2.00, 1999, null, null, null
+ROLLBACK TRANSACTION;
 
--- Should bypass SP and succeed because previous part is null.
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 06
+-- Bypass SP because previous part is null
+-- Result: Success
+BEGIN TRANSACTION;
 EXEC USP_Products_Insert 9999999, 'Movie', null, 'Star Wars Latest', null, null, 2.00, 1999, null, null, null
+ROLLBACK TRANSACTION;
 
--- Rollback
-DELETE FROM Product WHERE product_id = 9999999
-DELETE FROM Product WHERE product_id = 9999998
-
-
--- Constraint #2, Stored Procedure uitwerking
--- Bij een film met previous part, is de film later uitgebracht dan het previous part.
-
-DROP PROCEDURE IF EXISTS USP_Products_Update_PreviousProductId
-GO
+--  --------------------------------------------------------
+--  Stored procedure
+--  --------------------------------------------------------
 CREATE PROCEDURE USP_Products_Update_PreviousProductId (
 	@ProductID INT,
 	@PreviousProductId INT
 )
 AS
+    SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+	BEGIN TRANSACTION;
+
 	SET NOCOUNT, XACT_ABORT ON
 
 	-- SP should only process if @ProductType = 'Movie' and @PreviousProductId is not null.
 	IF @PreviousProductId IS NULL RETURN;
 	IF (SELECT product_type FROM Product WHERE product_id = @ProductID) != 'Movie' RETURN;
 
-	--SET TRANSACTION ISOLATION LEVEL ...
 	BEGIN TRANSACTION;
 
 	BEGIN TRY
@@ -137,6 +177,9 @@ AS
 		IF XACT_STATE() <> 0 ROLLBACK TRANSACTION;
 		THROW;
 	END CATCH
+
+	COMMIT TRANSACTION;
+
 GO
 
 -- SP update tests
@@ -144,16 +187,32 @@ GO
 -- Assumption: Months and days are not stored, making us unable to determine if the previous_part was released
 -- before or after the current product, thus we assume that the same publication_year violates the trigger rules.
 
--- Should fail because its publication year is after 1999 (2002).
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 07
+-- Publication year is after 1999 (2002).
+-- Result: Throw error
+BEGIN TRANSACTION;
 EXEC USP_Products_Update_PreviousProductId 345635, 313503
+ROLLBACK TRANSACTION;
 
--- Should succeed because its publication year is before 1999 (1996).
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 08
+-- Publication year is before 1999 (1996).
+-- Result: Success
+BEGIN TRANSACTION;
 EXEC USP_Products_Update_PreviousProductId 345635, 313508
+ROLLBACK TRANSACTION;
 
--- Rollback
-UPDATE Product
-SET previous_product_id = null
-WHERE product_id = 345635
-
--- Should fail because it has the same publication year.
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 09
+-- Same publication year.
+-- Result: Throw error
+BEGIN TRANSACTION;
 EXEC USP_Products_Update_PreviousProductId 345635, 313799
+ROLLBACK TRANSACTION;

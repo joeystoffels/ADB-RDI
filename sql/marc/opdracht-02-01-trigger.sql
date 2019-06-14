@@ -1,9 +1,11 @@
-/*
- Constraint 1. Een film of spel hoort altijd bij minimaal één genre.
+USE odisee;
+GO
 
- Uitwerking Triggers
-*/
-
+DROP TRIGGER IF EXISTS trgProductInsert
+DROP TRIGGER IF EXISTS trgProductDelete
+DROP TRIGGER IF EXISTS trgProductGenreDelete
+DROP TRIGGER IF EXISTS trgProductGenreInsert
+GO
 
 -- Droppen van Foreign Key constraint welke in de weg zit.
 ALTER TABLE Product_Genre
@@ -21,10 +23,9 @@ BEGIN
 ;END
 GO
 
-
--- Trigger voor het inserten van een Product
-DROP TRIGGER IF EXISTS trgProductInsert
-GO
+--  --------------------------------------------------------
+--  Trigger
+--  --------------------------------------------------------
 CREATE TRIGGER trgProductInsert
 ON Product
 AFTER INSERT
@@ -33,11 +34,14 @@ BEGIN
 
 	SET NOCOUNT ON;
 
+    SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+	BEGIN TRANSACTION;
+
 	BEGIN TRY
 		DECLARE @PRID ID = (SELECT DISTINCT product_id FROM inserted);
 	END TRY
 	BEGIN CATCH
-		RAISERROR('Het is niet mogelijk om meerdere producten in één statement toe te voegen.', 16, 1);
+		RAISERROR('Het is niet mogelijk om meerdere producten in Ã©Ã©n statement toe te voegen.', 16, 1);
 		ROLLBACK TRANSACTION;
 		RETURN;
 	END CATCH;
@@ -52,13 +56,14 @@ BEGIN
 		INSERT INTO Product_Genre VALUES (@PRID, 'No genre allocated');
 	END;
 
+	COMMIT TRANSACTION;
+
 END
 GO
 
-
--- Trigger voor het verwijderen van een Product
-DROP TRIGGER IF EXISTS trgProductDelete
-GO
+--  --------------------------------------------------------
+--  Trigger
+--  --------------------------------------------------------
 CREATE TRIGGER trgProductDelete
 ON Product
 AFTER DELETE
@@ -67,15 +72,19 @@ BEGIN
 
 	SET NOCOUNT ON;
 
+    SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+	BEGIN TRANSACTION;
+
 	DELETE FROM Product_Genre
 	WHERE product_id IN (SELECT product_id FROM deleted)
 
+	COMMIT TRANSACTION;
+
 ;END
 
-
--- Trigger voor het verwijderen van een Product_Genre
-DROP TRIGGER IF EXISTS trgProductGenreDelete
-GO
+--  --------------------------------------------------------
+--  Trigger
+--  --------------------------------------------------------
 CREATE TRIGGER trgProductGenreDelete
 ON Product_Genre
 AFTER DELETE
@@ -83,6 +92,9 @@ AS
 BEGIN
 
 	SET NOCOUNT ON;
+
+    SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+	BEGIN TRANSACTION;
 
 	-- Tijdelijke tabel maken voor wanneer we meerdere records gaan verwijderen
 	SELECT product_id, ROW_NUMBER() OVER(ORDER BY product_id) AS ROW
@@ -108,13 +120,14 @@ BEGIN
 		SET @COUNTER = (@COUNTER - 1)
 	;END
 
+	COMMIT TRANSACTION;
+
 END
 GO
 
-
--- Trigger voor het inserten van een Product_Genre
-DROP TRIGGER IF EXISTS trgProductGenreInsert
-GO
+--  --------------------------------------------------------
+--  Trigger
+--  --------------------------------------------------------
 CREATE TRIGGER trgProductGenreInsert
 ON Product_Genre
 AFTER INSERT
@@ -123,11 +136,14 @@ BEGIN
 
 	SET NOCOUNT ON;
 
+    SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+	BEGIN TRANSACTION;
+
 	BEGIN TRY
 	DECLARE @PRID ID = (SELECT DISTINCT product_id FROM inserted)
 	END TRY
 	BEGIN CATCH
-		RAISERROR('Het is niet mogelijk om meerdere genres in één statement toe te voegen.', 16, 1);
+		RAISERROR('Het is niet mogelijk om meerdere genres in Ã©Ã©n statement toe te voegen.', 16, 1);
 		ROLLBACK TRANSACTION;
 		RETURN;
 	END CATCH;
@@ -157,32 +173,18 @@ BEGIN
 		WHERE product_id = @PRID AND genre_name = 'No genre allocated'
 	END;
 
+    COMMIT TRANSACTION;
+
 END
 GO
 
-
-/*
-
-	Testscenario's:
-
-	|X| Insert product zonder genre
-	|X| Insert product met één genre
-	|X| Insert product met twee genres
-	|X| Insert genre met verwijzing naar bestaand product
-	|X| Insert twee genres met verwijzing naar bestaand product
-	|X| Insert genre met verwijzing naar niet-bestaand product
-	|X| Insert twee producten zonder genre
-	|X| Insert twee producten met één genre
-	|X| Insert twee producten met twee genres
-	|X| Verwijder genre van product (standaard genre 'No genre allocated' terugplaatsen)
-
-*/
-
-
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 01
 -- Insert product zonder genre (krijgt standaard genre 'No genre allocated' toegekend)
-BEGIN TRANSACTION
-
+-- Result: Success
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
 
 INSERT INTO Product (product_id, product_type, title, movie_default_price)
@@ -193,23 +195,19 @@ FROM Product AS p
 	INNER JOIN Product_Genre AS pg 
 		ON p.product_id=pg.product_id 
 WHERE p.product_id=@PRID;
+ROLLBACK TRANSACTION;
 
-COMMIT TRANSACTION
-GO
-
--- Opschonen van testdata
-DELETE FROM Product
-WHERE title = 'Movie zonder genre'
-GO
-
-
--- Insert product met één genre
-BEGIN TRANSACTION
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 02
+-- Insert product met Ã©Ã©n genre
+-- Result: Success
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
 
 INSERT INTO Product (product_id, product_type, title, movie_default_price)
-VALUES (@PRID, 'Movie', 'Movie met één genre', 3.50)
+VALUES (@PRID, 'Movie', 'Movie met Ã©Ã©n genre', 3.50)
 
 INSERT INTO Product_Genre
 VALUES (@PRID, 'Action')
@@ -219,19 +217,15 @@ FROM Product AS p
 	INNER JOIN Product_Genre AS pg 
 		ON p.product_id=pg.product_id 
 WHERE p.product_id=@PRID;
+ROLLBACK TRANSACTION;
 
-COMMIT TRANSACTION
-GO
-
--- Opruimen van testdata
-DELETE FROM Product
-WHERE product_id=(SELECT product_id FROM Product WHERE title = 'Movie met één genre')
-GO
-
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 03
 -- Insert product met twee genres
-BEGIN TRANSACTION
-
+-- Result: Success
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
 
 INSERT INTO Product (product_id, product_type, title, movie_default_price)
@@ -245,19 +239,15 @@ FROM Product AS p
 	INNER JOIN Product_Genre AS pg 
 		ON p.product_id=pg.product_id 
 WHERE p.product_id=@PRID;
+ROLLBACK TRANSACTION;
 
-COMMIT TRANSACTION
-GO
-
--- Opruimen van testdata
-DELETE FROM Product
-WHERE product_id IN (SELECT product_id FROM Product WHERE title = 'Movie met twee genres')
-GO
-
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 04
 -- Insert genre met verwijzing naar bestaand product
-BEGIN TRANSACTION
-
+-- Result: Success
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(p.product_id) FROM Product AS p WHERE p.product_type = 'Movie' 
 	AND (SELECT COUNT(*) FROM Product_Genre pg WHERE p.product_id=pg.product_id) > 1);
 
@@ -269,21 +259,15 @@ FROM Product AS p
 	INNER JOIN Product_Genre AS pg 
 		ON p.product_id=pg.product_id 
 WHERE p.product_id=@PRID;
+ROLLBACK TRANSACTION;
 
-COMMIT TRANSACTION
-GO
-
--- Opruimen van testdata
-DELETE FROM Product_Genre
-WHERE product_id = ((SELECT MAX(p.product_id) FROM Product AS p WHERE p.product_type = 'Movie' 
-	AND (SELECT COUNT(*) FROM Product_Genre pg WHERE p.product_id=pg.product_id) > 1)) 
-	AND genre_name = 'Action'
-GO
-
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 05
 -- Insert twee genres met verwijzing naar bestaand product
-BEGIN TRANSACTION
-
+-- Result: Success
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(p.product_id) FROM Product AS p WHERE p.product_type = 'Movie' 
 	AND (SELECT COUNT(*) FROM Product_Genre pg WHERE p.product_id=pg.product_id) > 1);
 
@@ -295,34 +279,29 @@ FROM Product AS p
 	INNER JOIN Product_Genre AS pg 
 		ON p.product_id=pg.product_id 
 WHERE p.product_id=@PRID;
+ROLLBACK TRANSACTION;
 
-COMMIT TRANSACTION
-GO
-
--- Opruimen van testdata
-DELETE FROM Product_Genre
-WHERE product_id = ((SELECT MAX(p.product_id) FROM Product AS p WHERE p.product_type = 'Movie' 
-	AND (SELECT COUNT(*) FROM Product_Genre pg WHERE p.product_id=pg.product_id) > 1)) 
-	AND (genre_name = 'Action' OR genre_name = 'Documentary')
-GO
-
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 06
 -- Insert genre met verwijzing naar niet-bestaand product, gooit foutmelding:
 -- 'Er bestaat geen product bij deze genre. Genre kan niet worden toegevoegd'
-BEGIN TRANSACTION
-
+-- Result: Throw Error
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
 PRINT 'Onderstaande foutmelding verwachten we, mag dus worden genegeerd.';
 INSERT INTO Product_Genre
 VALUES (@PRID, 'Action')
+ROLLBACK TRANSACTION;
 
-COMMIT TRANSACTION
-GO
-
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 07
 -- Insert twee producten zonder genre
-BEGIN TRANSACTION
-
+-- Result: Success
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
 INSERT INTO Product (product_id, product_type, title, movie_default_price)
 VALUES (@PRID, 'Movie', 'Movie 1/2 zonder genre', 3.00)
@@ -342,23 +321,19 @@ FROM Product AS p
 	INNER JOIN Product_Genre AS pg 
 		ON p.product_id=pg.product_id 
 WHERE p.product_id=@PRID;
+ROLLBACK TRANSACTION;
 
-COMMIT TRANSACTION
-GO
-
--- Opschonen van testdata
-DELETE FROM Product
-WHERE title = 'Movie 1/2 zonder genre' OR title = 'Movie 2/2 zonder genre'
-GO
-
-
--- Insert twee producten met één genre
-BEGIN TRANSACTION
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 08
+-- Insert twee producten met Ã©Ã©n genre
+-- Result: Success
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
 
 INSERT INTO Product (product_id, product_type, title, movie_default_price)
-VALUES (@PRID, 'Movie', 'Movie 1/2 met één genre', 3.00)
+VALUES (@PRID, 'Movie', 'Movie 1/2 met Ã©Ã©n genre', 3.00)
 
 INSERT INTO Product_Genre
 VALUES (@PRID, 'Horror')
@@ -372,7 +347,7 @@ WHERE p.product_id=@PRID;
 SET @PRID = (SELECT MAX(product_id)+1 FROM Product);
 
 INSERT INTO Product (product_id, product_type, title, movie_default_price)
-VALUES (@PRID, 'Movie', 'Movie 2/2 met één genre', 4.00)
+VALUES (@PRID, 'Movie', 'Movie 2/2 met Ã©Ã©n genre', 4.00)
 
 INSERT INTO Product_Genre
 VALUES (@PRID, 'Comedy')
@@ -382,23 +357,15 @@ FROM Product AS p
 	INNER JOIN Product_Genre AS pg 
 		ON p.product_id=pg.product_id 
 WHERE p.product_id=@PRID;
+ROLLBACK TRANSACTION;
 
-COMMIT TRANSACTION
-GO
-
--- Opschonen van testdata
-DELETE FROM Product_Genre
-WHERE product_id IN (SELECT product_id FROM Product WHERE title = 'Movie 1/2 met één genre' OR title = 'Movie 2/2 met één genre')
-GO
-
-DELETE FROM Product
-WHERE title = 'Movie 1/2 met één genre' OR title = 'Movie 2/2 met één genre'
-GO
-
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 09
 -- Insert twee producten met twee genres
-BEGIN TRANSACTION
-
+-- Result: Success
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
 
 INSERT INTO Product (product_id, product_type, title, movie_default_price)
@@ -426,23 +393,15 @@ FROM Product AS p
 	INNER JOIN Product_Genre AS pg 
 		ON p.product_id=pg.product_id 
 WHERE p.product_id=@PRID;
+ROLLBACK TRANSACTION;
 
-COMMIT TRANSACTION
-GO
-
--- Opschonen van testdata
-DELETE FROM Product_Genre
-WHERE product_id IN (SELECT product_id FROM Product WHERE title = 'Movie 1/2 met twee genres' OR title = 'Movie 2/2 met twee genres')
-GO
-
-DELETE FROM Product
-WHERE title = 'Movie 1/2 met twee genres' OR title = 'Movie 2/2 met twee genres'
-GO
-
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 10
 -- Verwijder genre van product (standaard genre 'No genre allocated' terugplaatsen)
-BEGIN TRANSACTION
-
+-- Result: Success
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id) FROM Product_Genre WHERE (SELECT COUNT(product_id) FROM Product_Genre) > 1);
 
 DELETE FROM Product_Genre
@@ -453,6 +412,4 @@ FROM Product AS p
 	INNER JOIN Product_Genre AS pg 
 		ON p.product_id=pg.product_id 
 WHERE p.product_id=@PRID;
-
--- Wijzigingen niet doorvoeren
-ROLLBACK TRANSACTION
+ROLLBACK TRANSACTION;

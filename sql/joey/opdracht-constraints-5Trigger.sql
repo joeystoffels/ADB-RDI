@@ -1,8 +1,5 @@
--- Constraint #5, Trigger uitwerking
--- Voor een geldige film recensie zijn cijfers voor Plot en Acting verplicht
--- en dient minimaal een van de rubrieken Cinematography en Music and Sound te
--- worden beoordeeld. Als hieraan is voldaan, dan wordt de recensie geaccepteerd
--- en wordt het totaalcijfer berekend.
+USE odisee;
+GO
 
 -- Drop constraint on Review if exists
 ALTER TABLE [dbo].[Review] DROP CONSTRAINT IF EXISTS [CK_category_filled_check]
@@ -10,12 +7,19 @@ GO
 
 DROP TRIGGER IF EXISTS TR_Review_AI_AU
 GO
+
+--  --------------------------------------------------------
+--  Trigger
+--  --------------------------------------------------------
 CREATE TRIGGER TR_Review_AI_AU ON Review
 AFTER INSERT, UPDATE
 AS
 BEGIN
 
 	SET NOCOUNT ON;
+
+    SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+	BEGIN TRANSACTION;
 
 	IF NOT EXISTS (SELECT * FROM Inserted) RETURN;
 
@@ -65,13 +69,19 @@ BEGIN
 		PRINT 'In catch block of TR_Review_AI_AU';
 		THROW;
 	END CATCH
+
+	COMMIT TRANSACTION;
 END;
 
 
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 01
 -- Trigger insert tests
 -- Info: Execute the following statements one by one in sequence to check the trigger.
 
+BEGIN TRANSACTION;
 -- No scores given for any category, should throw error code 50001
 INSERT INTO Review
 VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 5);
@@ -127,17 +137,16 @@ VALUES (345635, 'joey.stoffels@gmail.com', 'Music and Sound', 8);
 -- Music and Sound now present, should succeed.
 INSERT INTO Review
 VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 5);
+ROLLBACK TRANSACTION;
 
--- Cleanup actions
-DELETE FROM Review_Category
-WHERE product_id = 345635 AND email_address = 'joey.stoffels@gmail.com'
-
-DELETE FROM Review
-WHERE product_id = 345635 AND email_address = 'joey.stoffels@gmail.com';
-
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 02
 -- Trigger update test
 -- Info: Execute the following statements one by one in sequence to check the trigger.
+
+BEGIN TRANSACTION;
 INSERT INTO Review_Category
 VALUES (345635, 'joey.stoffels@gmail.com', 'Plot', 8),
 (345635, 'joey.stoffels@gmail.com', 'Acting', 8),
@@ -169,14 +178,4 @@ WHERE product_id = 345635 AND email_address = 'joey.stoffels@gmail.com';
 
 -- Check if update succeeded
 SELECT * FROM Review WHERE product_id = 9999998;
-
--- Clean up
-DELETE FROM Review
-WHERE product_id = 9999998
-
-DELETE FROM Review_Category
-WHERE product_id = 9999998 OR product_id = 345635
-AND email_address = 'joey.stoffels@gmail.com'
-
-DELETE FROM Product
-WHERE product_id = 9999998
+ROLLBACK TRANSACTION;

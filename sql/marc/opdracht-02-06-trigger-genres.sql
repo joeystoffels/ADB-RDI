@@ -1,9 +1,8 @@
-/*
- Constraint 6. Genres voor films en spellen zijn verschillend, deze mogen niet bij het verkeerde media-item gebruikt worden. 
-			   Hetzelfde geld voor Review aspecten.
+USE odisee;
+GO
 
- Uitwerking Triggers
-*/
+DROP TRIGGER IF EXISTS trgProductGenreInsertValidGenreForType
+GO
 
 -- Eerst voegen we een extra kolom genaamd product_type toe om een relatie te leggen tussen de genre en het type product
 IF NOT EXISTS(SELECT 1 FROM sys.columns 
@@ -72,8 +71,9 @@ BEGIN
 ;END
 GO
 
-DROP TRIGGER IF EXISTS trgProductGenreInsertValidGenreForType
-GO
+--  --------------------------------------------------------
+--  Trigger
+--  --------------------------------------------------------
 CREATE TRIGGER trgProductGenreInsertValidGenreForType
 ON Product_Genre
 AFTER INSERT, UPDATE
@@ -81,6 +81,9 @@ AS
 BEGIN
 
 	SET NOCOUNT ON;
+
+    SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+	BEGIN TRANSACTION;
 
 	DECLARE @PRID ID = (SELECT product_id FROM inserted);
 	DECLARE @genre GENRE = (SELECT genre_name FROM inserted AS i);
@@ -94,7 +97,6 @@ BEGIN
 			RETURN;
 		;END
 	;END
-
 	IF((SELECT product_type FROM Product WHERE product_id = @PRID) = 'Game')
 	BEGIN
 		IF ((SELECT COUNT(*) FROM Genre WHERE genre_name = @genre AND product_type = 'Game') = 0)
@@ -104,35 +106,20 @@ BEGIN
 			RETURN;
 		;END
 	;END
-	
+
+	COMMIT TRANSACTION;
+
 ;END
 GO
 
 
-/*
-
-	Testscenario's:
-
-	|X| Insert product zonder genre (krijgt standaard genre 'No genre allocated' toegekend)
-	|X| Insert product (movie) met één geldige genre
-	|X| Insert product (movie) met één ongeldige genre, resulteert in foutmelding
-	|X| Insert product (game) met één geldige genre
-	|X| Insert product (game) met één ongeldige genre, resulteert in foutmelding
-	|X| Insert twee producten (movie) met één geldige genre
-	|X| Insert twee producten (movie) met twee geldige genres
-	|X| Insert twee producten (game) met één geldige genre
-	|X| Insert twee producten (game) met twee geldige genres
-	|X| Update product (movie) met een geldige genre
-	|X| Update product (movie) met een ongeldige genre
-	|X| Update product (game) met een geldige genre
-	|X| Update product (game) met een ongeldige genre
-
-*/
-
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 01
 -- Insert product zonder genre (krijgt standaard genre 'No genre allocated' toegekend)
-BEGIN TRANSACTION
-
+-- Result: Success
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
 
 INSERT INTO Product (product_id, product_type, title, movie_default_price)
@@ -143,23 +130,19 @@ FROM Product AS p
 	INNER JOIN Product_Genre AS pg 
 		ON p.product_id=pg.product_id 
 WHERE p.product_id=@PRID;
+ROLLBACK TRANSACTION;
 
-COMMIT TRANSACTION
-GO
-
--- Opschonen van testdata
-DELETE FROM Product
-WHERE title = 'Movie zonder genre'
-GO
-
-
--- Insert product (movie) met één geldige genre
-BEGIN TRANSACTION
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 02
+-- Insert product (movie) met Ã©Ã©n geldige genre
+-- Result: Success
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
 
 INSERT INTO Product (product_id, product_type, title, movie_default_price)
-VALUES (@PRID, 'Movie', 'Movie met één geldige genre', 3.50)
+VALUES (@PRID, 'Movie', 'Movie met Ã©Ã©n geldige genre', 3.50)
 
 INSERT INTO Product_Genre
 VALUES (@PRID, 'Action')
@@ -169,23 +152,19 @@ FROM Product AS p
 	INNER JOIN Product_Genre AS pg 
 		ON p.product_id=pg.product_id 
 WHERE p.product_id=@PRID;
+ROLLBACK TRANSACTION;
 
-COMMIT TRANSACTION
-GO
-
--- Opruimen van testdata
-DELETE FROM Product
-WHERE product_id=(SELECT product_id FROM Product WHERE title = 'Movie met één geldige genre')
-GO
-
-
--- Insert product (movie) met één ongeldige genre, resulteert in foutmelding
-BEGIN TRANSACTION
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 03
+-- Insert product (movie) met Ã©Ã©n ongeldige genre, resulteert in foutmelding
+-- Result: Throw Error
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
 
 INSERT INTO Product (product_id, product_type, title, movie_default_price)
-VALUES (@PRID, 'Movie', 'Movie met één ongeldige genre', 3.50)
+VALUES (@PRID, 'Movie', 'Movie met Ã©Ã©n ongeldige genre', 3.50)
 
 PRINT 'Hier verwachten we een foutmelding'
 INSERT INTO Product_Genre
@@ -196,18 +175,19 @@ FROM Product AS p
 	INNER JOIN Product_Genre AS pg 
 		ON p.product_id=pg.product_id 
 WHERE p.product_id=@PRID;
+ROLLBACK TRANSACTION;
 
-COMMIT TRANSACTION
-GO
-
-
--- Insert product (game) met één geldige genre
-BEGIN TRANSACTION
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 04
+-- Insert product (game) met Ã©Ã©n geldige genre
+-- Result: Success
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
 
 INSERT INTO Product (product_id, product_type, title, movie_default_price)
-VALUES (@PRID, 'Game', 'Game met één geldige genre', 2.50)
+VALUES (@PRID, 'Game', 'Game met Ã©Ã©n geldige genre', 2.50)
 
 INSERT INTO Product_Genre
 VALUES (@PRID, 'MMO')
@@ -217,23 +197,19 @@ FROM Product AS p
 	INNER JOIN Product_Genre AS pg 
 		ON p.product_id=pg.product_id 
 WHERE p.product_id=@PRID;
+ROLLBACK TRANSACTION;
 
-COMMIT TRANSACTION
-GO
-
--- Opruimen van testdata
-DELETE FROM Product
-WHERE product_id=(SELECT product_id FROM Product WHERE title = 'Game met één geldige genre')
-GO
-
-
--- Insert product (game) met één ongeldige genre, resulteert in foutmelding
-BEGIN TRANSACTION
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 05
+-- Insert product (game) met Ã©Ã©n ongeldige genre, resulteert in foutmelding
+-- Result: Throw Error
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
 
 INSERT INTO Product (product_id, product_type, title, movie_default_price)
-VALUES (@PRID, 'Game', 'Game met één ongeldige genre', 3.50)
+VALUES (@PRID, 'Game', 'Game met Ã©Ã©n ongeldige genre', 3.50)
 
 PRINT 'Hier verwachten we een foutmelding'
 INSERT INTO Product_Genre
@@ -244,18 +220,19 @@ FROM Product AS p
 	INNER JOIN Product_Genre AS pg 
 		ON p.product_id=pg.product_id 
 WHERE p.product_id=@PRID;
+ROLLBACK TRANSACTION;
 
-COMMIT TRANSACTION
-GO
-
-
--- Insert twee producten (movie) met één geldige genre
-BEGIN TRANSACTION
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 06
+-- Insert twee producten (movie) met Ã©Ã©n geldige genre
+-- Result: Success
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
 
 INSERT INTO Product (product_id, product_type, title, movie_default_price)
-VALUES (@PRID, 'Movie', 'Movie met één geldige genre (1/2)', 3.50)
+VALUES (@PRID, 'Movie', 'Movie met Ã©Ã©n geldige genre (1/2)', 3.50)
 
 INSERT INTO Product_Genre
 VALUES (@PRID, 'Action')
@@ -269,7 +246,7 @@ WHERE p.product_id=@PRID
 SET @PRID = @PRID+1;
 
 INSERT INTO Product (product_id, product_type, title, movie_default_price)
-VALUES (@PRID, 'Movie', 'Movie met één geldige genre (2/2)', 3.50)
+VALUES (@PRID, 'Movie', 'Movie met Ã©Ã©n geldige genre (2/2)', 3.50)
 
 INSERT INTO Product_Genre
 VALUES (@PRID, 'Horror')
@@ -279,23 +256,15 @@ FROM Product AS p
 	INNER JOIN Product_Genre AS pg 
 		ON p.product_id=pg.product_id 
 WHERE p.product_id=@PRID
+ROLLBACK TRANSACTION;
 
-COMMIT TRANSACTION
-GO
-
--- Opruimen van testdata
-DELETE FROM Product_Genre
-WHERE product_id IN (SELECT product_id FROM Product WHERE title = 'Movie met één geldige genre (1/2)' OR title = 'Movie met één geldige genre (2/2)')
-GO
-
-DELETE FROM Product
-WHERE product_id IN (SELECT product_id FROM Product WHERE title = 'Movie met één geldige genre (1/2)' OR title = 'Movie met één geldige genre (2/2)')
-GO
-
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 07
 -- Insert twee producten (movie) met twee geldige genres
-BEGIN TRANSACTION
-
+-- Result: Success
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
 
 INSERT INTO Product (product_id, product_type, title, movie_default_price)
@@ -329,27 +298,19 @@ FROM Product AS p
 	INNER JOIN Product_Genre AS pg 
 		ON p.product_id=pg.product_id 
 WHERE p.product_id=@PRID
+ROLLBACK TRANSACTION;
 
-COMMIT TRANSACTION
-GO
-
--- Opruimen van testdata
-DELETE FROM Product_Genre
-WHERE product_id IN (SELECT product_id FROM Product WHERE title = 'Movie met twee geldige genres (1/2)' OR title = 'Movie met twee geldige genres (2/2)')
-GO
-
-DELETE FROM Product
-WHERE product_id IN (SELECT product_id FROM Product WHERE title = 'Movie met twee geldige genres (1/2)' OR title = 'Movie met twee geldige genres (2/2)')
-GO
-
-
--- Insert twee producten (game) met één geldige genre
-BEGIN TRANSACTION
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 08
+-- Insert twee producten (game) met Ã©Ã©n geldige genre
+-- Result: Success
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
 
 INSERT INTO Product (product_id, product_type, title, movie_default_price)
-VALUES (@PRID, 'Game', 'Game met één geldige genre (1/2)', 3.50)
+VALUES (@PRID, 'Game', 'Game met Ã©Ã©n geldige genre (1/2)', 3.50)
 
 INSERT INTO Product_Genre
 VALUES (@PRID, 'Action')
@@ -363,7 +324,7 @@ WHERE p.product_id=@PRID
 SET @PRID = @PRID+1;
 
 INSERT INTO Product (product_id, product_type, title, movie_default_price)
-VALUES (@PRID, 'Game', 'Game met één geldige genre (2/2)', 3.50)
+VALUES (@PRID, 'Game', 'Game met Ã©Ã©n geldige genre (2/2)', 3.50)
 
 INSERT INTO Product_Genre
 VALUES (@PRID, 'MMO')
@@ -373,23 +334,15 @@ FROM Product AS p
 	INNER JOIN Product_Genre AS pg 
 		ON p.product_id=pg.product_id 
 WHERE p.product_id=@PRID
+ROLLBACK TRANSACTION;
 
-COMMIT TRANSACTION
-GO
-
--- Opruimen van testdata
-DELETE FROM Product_Genre
-WHERE product_id IN (SELECT product_id FROM Product WHERE title = 'Game met één geldige genre (1/2)' OR title = 'Game met één geldige genre (2/2)')
-GO
-
-DELETE FROM Product
-WHERE product_id IN (SELECT product_id FROM Product WHERE title = 'Game met één geldige genre (1/2)' OR title = 'Game met één geldige genre (2/2)')
-GO
-
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 09
 -- Insert twee producten (game) met twee geldige genres
-BEGIN TRANSACTION
-
+-- Result: Success
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
 
 INSERT INTO Product (product_id, product_type, title, movie_default_price)
@@ -423,23 +376,15 @@ FROM Product AS p
 	INNER JOIN Product_Genre AS pg 
 		ON p.product_id=pg.product_id 
 WHERE p.product_id=@PRID
+ROLLBACK TRANSACTION;
 
-COMMIT TRANSACTION
-GO
-
--- Opruimen van testdata
-DELETE FROM Product_Genre
-WHERE product_id IN (SELECT product_id FROM Product WHERE title = 'Game met twee geldige genres (1/2)' OR title = 'Game met twee geldige genres (2/2)')
-GO
-
-DELETE FROM Product
-WHERE product_id IN (SELECT product_id FROM Product WHERE title = 'Game met twee geldige genres (1/2)' OR title = 'Game met twee geldige genres (2/2)')
-GO
-
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 10
 -- Update product (movie) met een geldige genre
-BEGIN TRANSACTION
-
+-- Result: Success
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
 
 INSERT INTO Product (product_id, product_type, title, movie_default_price)
@@ -455,14 +400,15 @@ SET genre_name = 'Horror'
 WHERE product_id = @PRID
 
 SELECT * FROM Product_Genre WHERE product_id = @PRID
+ROLLBACK TRANSACTION;
 
-ROLLBACK TRANSACTION
-GO
-
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 11
 -- Update product (movie) met een ongeldige genre
-BEGIN TRANSACTION
-
+-- Result: Throw Error
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
 
 INSERT INTO Product (product_id, product_type, title, movie_default_price)
@@ -479,14 +425,15 @@ SET genre_name = 'Action-Adventure'
 WHERE product_id = @PRID
 
 SELECT * FROM Product_Genre WHERE product_id = @PRID
+ROLLBACK TRANSACTION;
 
-ROLLBACK TRANSACTION
-GO
-
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 12
 -- Update product (game) met een geldige genre
-BEGIN TRANSACTION
-
+-- Result: Success
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
 
 INSERT INTO Product (product_id, product_type, title, movie_default_price)
@@ -502,13 +449,15 @@ SET genre_name = 'Simulation'
 WHERE product_id = @PRID
 
 SELECT * FROM Product_Genre WHERE product_id = @PRID
+ROLLBACK TRANSACTION;
 
-ROLLBACK TRANSACTION
-GO
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 12
 -- Update product (game) met een ongeldige genre
-BEGIN TRANSACTION
-
+-- Result: Throw Error
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
 
 INSERT INTO Product (product_id, product_type, title, movie_default_price)
@@ -525,6 +474,4 @@ SET genre_name = 'Romance'
 WHERE product_id = @PRID
 
 SELECT * FROM Product_Genre WHERE product_id = @PRID
-
-ROLLBACK TRANSACTION
-GO
+ROLLBACK TRANSACTION;

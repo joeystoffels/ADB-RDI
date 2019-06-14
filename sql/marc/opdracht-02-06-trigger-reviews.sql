@@ -1,9 +1,8 @@
-/*
- Constraint 6. Genres voor films en spellen zijn verschillend, deze mogen niet bij het verkeerde media-item gebruikt worden. 
-			   Hetzelfde geld voor Review aspecten.
+USE odisee;
+GO
 
- Uitwerking Triggers
-*/
+DROP TRIGGER IF EXISTS trgReviewCategoryInsertValidCategoryForType
+GO
 
 -- Toevoegen van extra kolom, product_type
 IF NOT EXISTS(SELECT 1 FROM sys.columns 
@@ -46,8 +45,9 @@ BEGIN
 ;END
 GO
 
-DROP TRIGGER IF EXISTS trgReviewCategoryInsertValidCategoryForType
-GO
+--  --------------------------------------------------------
+--  Trigger
+--  --------------------------------------------------------
 CREATE TRIGGER trgReviewCategoryInsertValidCategoryForType
 ON Review_Category
 AFTER INSERT, UPDATE
@@ -55,6 +55,9 @@ AS
 BEGIN
 
 	SET NOCOUNT ON;
+
+    SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+	BEGIN TRANSACTION;
 
 	DECLARE @PRID ID = (SELECT product_id FROM inserted);
 	DECLARE @category CATEGORY = (SELECT category_name FROM inserted AS i);
@@ -78,53 +81,48 @@ BEGIN
 			RETURN;
 		;END
 	;END
-	
+
+	COMMIT TRANSACTION;
+
 ;END
 GO
 
-/*
-
-	Testscenario's:
-
-	|X| Insert review (movie) met één juiste category
-	|X| Insert review (movie) met één onjuiste category
-	|X| Insert review (movie) met twee juiste categories
-	|X| Insert review (game) met één juiste category
-	|X| Insert review (game) met één onjuiste category
-	|X| Insert review (game) met twee juiste categories
-
-*/
-
--- Insert review (movie) met één juiste category
-BEGIN TRANSACTION
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 01
+-- Insert review (movie) met Ã©Ã©n juiste category
+-- Result: Success
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id) FROM Product WHERE product_type = 'Movie')
 
 INSERT INTO Review_Category
 VALUES (@PRID, 'testdata@han.nl', 'Acting', 9)
 
 SELECT * FROM Review_Category WHERE product_id = @PRID
+ROLLBACK TRANSACTION;
 
-ROLLBACK TRANSACTION
-GO
-
-
--- Insert review (movie) met één onjuiste category
-BEGIN TRANSACTION
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 02
+-- Insert review (movie) met Ã©Ã©n onjuiste category
+-- Result: Throw Error
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id) FROM Product WHERE product_type = 'Movie')
 
 PRINT 'Hier verwachten we een foutmelding'
 INSERT INTO Review_Category
 VALUES (@PRID, 'testdata@han.nl', 'Gameplay', 6)
+ROLLBACK TRANSACTION;
 
-ROLLBACK TRANSACTION
-GO
-
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 03
 -- Insert review (movie) met twee juiste categories
-BEGIN TRANSACTION
-
+-- Result: Success
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id) FROM Product WHERE product_type = 'Movie')
 
 INSERT INTO Review_Category
@@ -134,41 +132,44 @@ INSERT INTO Review_Category
 VALUES (@PRID, 'testdata@han.nl', 'Plot', 5)
 
 SELECT * FROM Review_Category WHERE product_id = @PRID
+ROLLBACK TRANSACTION;
 
-ROLLBACK TRANSACTION
-GO
-
-
--- Insert review (game) met één juiste category
-BEGIN TRANSACTION
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 04
+-- Insert review (game) met Ã©Ã©n juiste category
+-- Result: Success
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id) FROM Product WHERE product_type = 'Game')
 
 INSERT INTO Review_Category
 VALUES (@PRID, 'testdata@han.nl', 'Gameplay', 9)
 
 SELECT * FROM Review_Category WHERE product_id = @PRID
+ROLLBACK TRANSACTION;
 
-ROLLBACK TRANSACTION
-GO
-
-
--- Insert review (game) met één onjuiste category
-BEGIN TRANSACTION
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 05
+-- Insert review (game) met Ã©Ã©n onjuiste category
+-- Result: Throw Error
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id) FROM Product WHERE product_type = 'Game')
 
 PRINT 'Hier verwachten we een foutmelding'
 INSERT INTO Review_Category
 VALUES (@PRID, 'testdata@han.nl', 'Plot', 6)
+ROLLBACK TRANSACTION;
 
-ROLLBACK TRANSACTION
-GO
-
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 06
 -- Insert review (game) met twee juiste categories
-BEGIN TRANSACTION
-
+-- Result: Success
+BEGIN TRANSACTION;
 DECLARE @PRID ID = (SELECT MAX(product_id) FROM Product WHERE product_type = 'Game')
 
 INSERT INTO Review_Category
@@ -178,6 +179,4 @@ INSERT INTO Review_Category
 VALUES (@PRID, 'testdata@han.nl', 'Challenge', 5)
 
 SELECT * FROM Review_Category WHERE product_id = @PRID
-
-ROLLBACK TRANSACTION
-GO
+ROLLBACK TRANSACTION;

@@ -1,8 +1,3 @@
---  --------------------------------------------------------
--- Constraint 4:
--- De datum waarop een film wordt bekeken valt binnen de/een abonnementperiode.
---  --------------------------------------------------------
-
 USE odisee;
 GO
 DROP PROCEDURE IF EXISTS SP_PurchaseInsert;
@@ -20,7 +15,11 @@ CREATE PROCEDURE SP_PurchaseInsert
 )
 AS
     BEGIN
+
         SET NOCOUNT ON;
+
+        SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+	    BEGIN TRANSACTION;
 
 		 IF NOT EXISTS
              (
@@ -38,6 +37,8 @@ AS
 
         SET NOCOUNT OFF;
     END;
+
+    COMMIT TRANSACTION;
 GO
 
 --  --------------------------------------------------------

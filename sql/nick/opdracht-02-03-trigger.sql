@@ -1,10 +1,3 @@
---  --------------------------------------------------------
--- Constraint 3:
--- Het kan natuurlijk gebeuren dat iemand meerdere abonnementsperiodes heeft.
--- Dan kunnen de verschillende abonnementsperiodes van een persoon niet overlappen.
--- https://i.stack.imgur.com/AIBUV.png
--- https://stackoverflow.com/questions/13513932/algorithm-to-detect-overlapping-periods
---  --------------------------------------------------------
 USE odisee;
 GO
 DROP TRIGGER IF EXISTS TR_No_Overlap_In_Subscriptions;
@@ -37,7 +30,12 @@ CREATE TRIGGER TR_No_Overlap_In_Subscriptions ON User_Subscription
 INSTEAD OF INSERT, UPDATE
 AS
      BEGIN
+
          SET NOCOUNT ON; -- Stops the message that shows the count of the number of rows affected
+
+         SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+	     BEGIN TRANSACTION;
+
          -- Declare variables
          DECLARE @email_address EMAIL;
          DECLARE @country_name COUNTRY;
@@ -92,7 +90,9 @@ AS
              THROW; -- Using TROW handles ROLLBACK and bubbles up the thrown error.
          END CATCH;
      END;
-	 GO
+
+     COMMIT TRANSACTION;
+ GO
 
 --  --------------------------------------------------------
 --  Demo data

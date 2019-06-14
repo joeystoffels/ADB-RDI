@@ -1,10 +1,3 @@
---  --------------------------------------------------------
--- Constraint 3:
--- Het kan natuurlijk gebeuren dat iemand meerdere abonnementsperiodes heeft.
--- Dan kunnen de verschillende abonnementsperiodes van een persoon niet overlappen.
--- https://i.stack.imgur.com/AIBUV.png
--- https://stackoverflow.com/questions/13513932/algorithm-to-detect-overlapping-periods
---  --------------------------------------------------------
 USE odisee;
 GO
 DROP PROCEDURE IF EXISTS SP_UserSubscriptionInsert;
@@ -44,9 +37,11 @@ CREATE PROCEDURE SP_UserSubscriptionInsert
  @monthly_fee PRICE
 )
 AS
+
     SET NOCOUNT, XACT_ABORT ON
 
-    BEGIN TRANSACTION;
+    SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+	BEGIN TRANSACTION;
 
     BEGIN TRY
 
@@ -77,6 +72,7 @@ AS
         THROW;
     END CATCH
 
+    COMMIT TRANSACTION;
 GO
 
 --  --------------------------------------------------------
