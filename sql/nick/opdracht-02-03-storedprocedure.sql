@@ -37,6 +37,10 @@ CREATE PROCEDURE SP_UserSubscriptionInsert
  @monthly_fee PRICE
 )
 AS
+
+    SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+	BEGIN TRANSACTION;
+
     SET NOCOUNT, XACT_ABORT ON
 
     BEGIN TRANSACTION;
@@ -70,6 +74,7 @@ AS
         THROW;
     END CATCH
 
+    COMMIT TRANSACTION;
 GO
 
 --  --------------------------------------------------------

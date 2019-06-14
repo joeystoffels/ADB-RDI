@@ -183,7 +183,7 @@ AS
 	END CATCH
 
 	COMMIT TRANSACTION;
-	
+
 GO
 
 -- SP update tests

@@ -30,6 +30,9 @@ CREATE TRIGGER TR_No_Overlap_In_Subscriptions ON User_Subscription
 INSTEAD OF INSERT, UPDATE
 AS
      BEGIN
+        SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+	    BEGIN TRANSACTION;
+
          SET NOCOUNT ON; -- Stops the message that shows the count of the number of rows affected
          -- Declare variables
          DECLARE @email_address EMAIL;
@@ -85,7 +88,9 @@ AS
              THROW; -- Using TROW handles ROLLBACK and bubbles up the thrown error.
          END CATCH;
      END;
-	 GO
+
+     COMMIT TRANSACTION;
+ GO
 
 --  --------------------------------------------------------
 --  Demo data
