@@ -25,9 +25,7 @@ WITH GenreMoviesPerDirector
                   PG.genre_name
          HAVING P2.person_id = 65358),
      DirectorGenreProb
-     AS (SELECT person_id, 
-                first_name, 
-                last_name, 
+     AS (SELECT person_id,
                 genre_name, 
                 CAST((totalPerGenre * 100.0 /
          (
