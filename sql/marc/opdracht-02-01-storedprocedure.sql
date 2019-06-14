@@ -31,7 +31,10 @@ GO
 CREATE PROCEDURE spProductInsert (@product_type TYPE, @title TITLE, @price PRICE, @genres GenreTableType READONLY)
 AS
 BEGIN
-	
+
+	SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+	BEGIN TRANSACTION;
+
 	DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
 
 	IF EXISTS(SELECT * FROM @genres)
@@ -48,6 +51,8 @@ BEGIN
 	SELECT @PRID, genre_name
 	FROM @genres
 
+	COMMIT TRANSACTION;
+
 ;END
 GO
 
@@ -57,6 +62,9 @@ GO
 CREATE PROCEDURE spProductGenreInsert (@product_id ID, @genres GenreTableType READONLY)
 AS
 BEGIN
+
+    SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+	BEGIN TRANSACTION;
 
 	-- Controleren of er minimaal één genre is opgegeven
 	IF((SELECT COUNT(*) FROM @genres) = 0)
@@ -85,6 +93,8 @@ BEGIN
 		WHERE product_id = @product_id AND genre_name = 'No genre allocated';
 	END;
 
+	COMMIT TRANSACTION;
+
 ;END
 GO
 
@@ -94,6 +104,9 @@ GO
 CREATE PROCEDURE spProductGenreDelete (@product_id ID, @genres GenreTableType READONLY)
 AS
 BEGIN
+
+    SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+	BEGIN TRANSACTION;
 
 	-- Controleren of er minimaal één genre is opgegeven
 	IF((SELECT COUNT(*) FROM @genres) = 0)
@@ -120,6 +133,8 @@ BEGIN
 		INSERT INTO Product_Genre
 		VALUES (@product_id, 'No genre allocated');
 	END;
+
+    COMMIT TRANSACTION;
 
 ;END
 
