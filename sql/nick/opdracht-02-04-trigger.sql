@@ -1,8 +1,3 @@
---  --------------------------------------------------------
--- Constraint 4:
--- De datum waarop een film wordt bekeken valt binnen de/een abonnementperiode.
---  --------------------------------------------------------
-
 USE odisee;
 GO
 DROP TRIGGER IF EXISTS TR_WatchMovieInPeriod;

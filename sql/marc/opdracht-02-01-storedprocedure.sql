@@ -1,27 +1,11 @@
-/*
- Constraint 1. Een film of spel hoort altijd bij minimaal één genre.
-
- Uitwerking Stored Procedures
-*/
-
-DROP TRIGGER IF EXISTS trgProductInsert
+USE odisee;
 GO
 
-DROP TRIGGER IF EXISTS trgProductDelete
-GO
-
-DROP TRIGGER IF EXISTS trgProductGenreDelete
-GO
-
-DROP TRIGGER IF EXISTS trgProductGenreInsert
-GO
-
--- Droppen van Foreign Key constraint welke in de weg zit.
 ALTER TABLE Product_Genre
 DROP CONSTRAINT IF EXISTS FK_PRODUCT__PRODUCT_G_PRODUCT
 GO
 
--- Extra genre toegevoegd welke wordt toegekend aan een nieuw Product
+-- Extra genre welke wordt toegekend aan een nieuw product
 IF NOT EXISTS (SELECT * 
 			   FROM Genre 
 			   WHERE genre_name = 'No genre allocated')
@@ -31,35 +15,35 @@ BEGIN
 ;END
 GO
 
--- Bij het toevoegen van een product, worden de genres als Table Valued Parameter meegegeven 
 DROP PROCEDURE IF EXISTS spProductInsert
-GO
 DROP PROCEDURE IF EXISTS spProductGenreInsert
-GO
 DROP PROCEDURE IF EXISTS spProductGenreDelete
 GO
+
+-- Bij het toevoegen van een product, worden de genres als Table Valued Parameter meegegeven
 DROP TYPE IF EXISTS GenreTableType
-GO
 CREATE TYPE GenreTableType AS TABLE (genre_name GENRE PRIMARY KEY)
 GO
 
--- Stored procedure om product toe te kunnen voegen, bevat t.b.v. demo alleen verplichte velden (geen, één en twee genres)
+--  --------------------------------------------------------
+--  Stored procedure
+--  --------------------------------------------------------
 CREATE PROCEDURE spProductInsert (@product_type TYPE, @title TITLE, @price PRICE, @genres GenreTableType READONLY)
 AS
 BEGIN
 	
 	DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
 
-	IF((SELECT COUNT(*) FROM @genres) = 0)
+	IF EXISTS(SELECT * FROM @genres)
 	BEGIN
 		INSERT INTO Product_Genre VALUES (@PRID, 'No genre allocated');
 	END
 
-	-- Eerst product toevoegen
+	-- Product toevoegen
 	INSERT INTO Product (product_id, product_type, title, movie_default_price)
 	VALUES (@PRID, @product_type, @title, @price)
 
-	-- Nu ook genres toevoegen
+	-- Genres toevoegen
 	INSERT INTO Product_Genre
 	SELECT @PRID, genre_name
 	FROM @genres
@@ -67,12 +51,14 @@ BEGIN
 ;END
 GO
 
--- Stored procedure om genre toe te voegen aan bestaand product (één, twee), foutmelding bij onbestaand product
+--  --------------------------------------------------------
+--  Stored procedure
+--  --------------------------------------------------------
 CREATE PROCEDURE spProductGenreInsert (@product_id ID, @genres GenreTableType READONLY)
 AS
 BEGIN
 
-	-- Controleren of er minimaal één genre is opgegeven
+	-- Controleren of er minimaal Ã©Ã©n genre is opgegeven
 	IF((SELECT COUNT(*) FROM @genres) = 0)
 	BEGIN
 		ROLLBACK TRANSACTION;
@@ -102,12 +88,14 @@ BEGIN
 ;END
 GO
 
--- Stored procedure om genre te verwijderen
+--  --------------------------------------------------------
+--  Stored procedure
+--  --------------------------------------------------------
 CREATE PROCEDURE spProductGenreDelete (@product_id ID, @genres GenreTableType READONLY)
 AS
 BEGIN
 
-	-- Controleren of er minimaal één genre is opgegeven
+	-- Controleren of er minimaal Ã©Ã©n genre is opgegeven
 	IF((SELECT COUNT(*) FROM @genres) = 0)
 	BEGIN
 		ROLLBACK TRANSACTION;
@@ -135,27 +123,12 @@ BEGIN
 
 ;END
 
-
-/*
-
-	Testscenario's:
-
-	|X| Insert product zonder genre (spProductInsert)
-	|X| Insert product met één genre (spProductInsert)
-	|X| Insert product met twee genres (spProductInsert)
-	|X| Insert genre met verwijzing naar bestaand product (spProductGenreInsert)
-	|X| Insert twee genres met verwijzing naar bestaand product (spProductGenreInsert)
-	|X| Insert genre met verwijzing naar niet-bestaand product (spProductGenreInsert)
-	|X| Insert twee producten zonder genre (spProductInsert)
-	|X| Insert twee producten met één genre (spProductInsert)
-	|X| Insert twee producten met twee genres (spProductInsert)
-	|X| Verwijder genre van product (standaard genre 'No genre allocated' terugplaatsen) (spProductGenreDelete)
-	|X| Verwijder meerdere genres van product (standaard genre 'No genre allocated' terugplaatsen) (spProductGenreDelete)
-
-*/
-
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 01
 -- Insert product zonder genre
+-- Result: Success
 BEGIN TRANSACTION
 
 DECLARE @GenreTableType GenreTableType
@@ -169,26 +142,18 @@ FROM Product AS p
 		ON p.product_id=pg.product_id
 WHERE p.product_id = (SELECT MAX(product_id) FROM Product)
 
-COMMIT TRANSACTION
-GO
+ROLLBACK TRANSACTION
 
--- Opschonen van testdata
-DELETE FROM Product_Genre 
-WHERE product_id IN (SELECT product_id 
-					 FROM product 
-					 WHERE title = 'Product zonder genres')
-GO
-
-DELETE FROM Product
-WHERE title = 'Product zonder genres'
-GO
-
-
--- Insert product met één genre
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 02
+-- Insert product met Ã©Ã©n genre
+-- Result: Success
 BEGIN TRANSACTION
 
 DECLARE @GenreTableType GenreTableType
-DECLARE @ProductTitle TITLE = 'Product met één genre'
+DECLARE @ProductTitle TITLE = 'Product met Ã©Ã©n genre'
 
 INSERT INTO @GenreTableType
 VALUES ('Action')
@@ -201,22 +166,14 @@ FROM Product AS p
 		ON p.product_id=pg.product_id
 WHERE p.product_id = (SELECT MAX(product_id) FROM Product)
 
-COMMIT TRANSACTION
-GO
+ROLLBACK TRANSACTION
 
--- Opschonen van testdata
-DELETE FROM Product_Genre 
-WHERE product_id IN (SELECT product_id 
-					 FROM product 
-					 WHERE title = 'Product met één genre')
-GO
-
-DELETE FROM Product
-WHERE title = 'Product met één genre'
-GO
-
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 03
 -- Insert product met twee genres
+-- Result: Success
 BEGIN TRANSACTION
 
 DECLARE @GenreTableType GenreTableType
@@ -233,22 +190,14 @@ FROM Product AS p
 		ON p.product_id=pg.product_id
 WHERE p.product_id = (SELECT MAX(product_id) FROM Product)
 
-COMMIT TRANSACTION
-GO
+ROLLBACK TRANSACTION
 
--- Opschonen van testdata
-DELETE FROM Product_Genre 
-WHERE product_id IN (SELECT product_id 
-					 FROM product 
-					 WHERE title = 'Product met twee genres')
-GO
-
-DELETE FROM Product
-WHERE title = 'Product met twee genres'
-GO
-
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 04
 -- Insert genre met verwijzing naar bestaand product
+-- Result: Success
 BEGIN TRANSACTION
 
 DECLARE @GenreTableType GenreTableType
@@ -271,17 +220,14 @@ FROM Product AS p
 		ON p.product_id=pg.product_id
 WHERE p.product_id = @PRID
 
-COMMIT TRANSACTION
-GO
+ROLLBACK TRANSACTION
 
--- Opschonen van testdata
-DELETE FROM Product_Genre 
-WHERE product_id IN (SELECT product_id FROM Product_Genre WHERE product_id = (SELECT MAX(product_id) FROM Product_Genre))
-	AND genre_name = 'Action'
-GO
-
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 05
 -- Insert twee genres met verwijzing naar bestaand product
+-- Result: Success
 BEGIN TRANSACTION
 
 DECLARE @GenreTableType GenreTableType
@@ -304,17 +250,14 @@ FROM Product AS p
 		ON p.product_id=pg.product_id
 WHERE p.product_id = @PRID
 
-COMMIT TRANSACTION
-GO
+ROLLBACK TRANSACTION
 
--- Opschonen van testdata
-DELETE FROM Product_Genre 
-WHERE product_id IN (SELECT product_id FROM Product_Genre WHERE product_id = (SELECT MAX(product_id) FROM Product_Genre))
-	AND (genre_name = 'Action' OR genre_name = 'Documentary')
-GO
-
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 06
 -- Insert genre met verwijzing naar niet-bestaand product
+-- Result: Throw Error
 BEGIN TRANSACTION
 
 DECLARE @GenreTableType GenreTableType
@@ -326,11 +269,14 @@ VALUES ('Action')
 PRINT 'Hier verwachten we een foutmelding.';
 EXEC spProductGenreInsert @PRID, @GenreTableType
 
-COMMIT TRANSACTION
-GO
+ROLLBACK TRANSACTION
 
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 07
 -- Insert twee producten zonder genre
+-- Result: Success
 BEGIN TRANSACTION
 
 DECLARE @GenreTableType GenreTableType
@@ -354,28 +300,18 @@ FROM Product AS p
 		ON p.product_id=pg.product_id
 WHERE p.product_id = (SELECT MAX(product_id) FROM Product)
 
-COMMIT TRANSACTION
-GO
+ROLLBACK TRANSACTION
 
--- Opschonen van testdata
-DELETE FROM Product_Genre 
-WHERE product_id IN (SELECT product_id 
-					 FROM product 
-					 WHERE title = 'Producten zonder genres (1/2)' 
-						OR title = 'Producten zonder genres (2/2)')
-GO
-
-DELETE FROM Product
-WHERE title = 'Producten zonder genres (1/2)' 
-	OR title = 'Producten zonder genres (2/2)'
-GO
-
-
--- Insert twee producten met één genre
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 08
+-- Insert twee producten met Ã©Ã©n genre
+-- Result: Success
 BEGIN TRANSACTION
 
 DECLARE @GenreTableType GenreTableType
-DECLARE @ProductTitle TITLE = 'Producten met één genre (1/2)'
+DECLARE @ProductTitle TITLE = 'Producten met Ã©Ã©n genre (1/2)'
 
 INSERT INTO @GenreTableType
 VALUES ('Action')
@@ -388,7 +324,7 @@ FROM Product AS p
 		ON p.product_id=pg.product_id
 WHERE p.product_id = (SELECT MAX(product_id) FROM Product)
 
-SET @ProductTitle = 'Producten met één genre (2/2)'
+SET @ProductTitle = 'Producten met Ã©Ã©n genre (2/2)'
 
 EXEC spProductInsert 'Movie', @ProductTitle, 3.00, @GenreTableType
 
@@ -398,24 +334,14 @@ FROM Product AS p
 		ON p.product_id=pg.product_id
 WHERE p.product_id = (SELECT MAX(product_id) FROM Product)
 
-COMMIT TRANSACTION
-GO
+ROLLBACK TRANSACTION
 
--- Opschonen van testdata
-DELETE FROM Product_Genre 
-WHERE product_id IN (SELECT product_id 
-					 FROM product 
-					 WHERE title = 'Producten met één genre (1/2)' 
-						OR title = 'Producten met één genre (2/2)')
-GO
-
-DELETE FROM Product
-WHERE title = 'Producten met één genre (1/2)' 
-	OR title = 'Producten met één genre (2/2)'
-GO
-
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 09
 -- Insert twee producten met twee genres
+-- Result: Success
 BEGIN TRANSACTION
 
 DECLARE @GenreTableType GenreTableType
@@ -442,28 +368,18 @@ FROM Product AS p
 		ON p.product_id=pg.product_id
 WHERE p.product_id = (SELECT MAX(product_id) FROM Product)
 
-COMMIT TRANSACTION
-GO
+ROLLBACK TRANSACTION
 
--- Opschonen van testdata
-DELETE FROM Product_Genre 
-WHERE product_id IN (SELECT product_id 
-					 FROM product 
-					 WHERE title = 'Producten met twee genres (1/2)' 
-						OR title = 'Producten met twee genres (2/2)')
-GO
-
-DELETE FROM Product
-WHERE title = 'Producten met twee genres (1/2)' 
-	OR title = 'Producten met twee genres (2/2)'
-GO
-
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 10
 -- Verwijder genre van product (standaard genre 'No genre allocated' terugplaatsen)
+-- Result: Success
 BEGIN TRANSACTION
 
 DECLARE @GenreTableType GenreTableType
-DECLARE @ProductTitle TITLE = 'Product met één genre om te verwijderen'
+DECLARE @ProductTitle TITLE = 'Product met Ã©Ã©n genre om te verwijderen'
 
 INSERT INTO @GenreTableType
 VALUES ('Documentary')
@@ -477,7 +393,7 @@ FROM Product AS p
 		ON p.product_id=pg.product_id
 WHERE p.product_id = (SELECT MAX(product_id) FROM Product)
 
-DECLARE @PRID ID = (SELECT product_id FROM Product WHERE title = 'Product met één genre om te verwijderen');
+DECLARE @PRID ID = (SELECT product_id FROM Product WHERE title = 'Product met Ã©Ã©n genre om te verwijderen');
 
 -- Genre nu verwijderen om aan te tonen dat standaard genre wordt toegevoegd
 EXEC spProductGenreDelete @PRID, @GenreTableType
@@ -489,22 +405,14 @@ FROM Product AS p
 		ON p.product_id=pg.product_id
 WHERE p.product_id = @PRID
 
-COMMIT TRANSACTION
-GO
+ROLLBACK TRANSACTION
 
--- Opschonen van testdata
-DELETE FROM Product_Genre 
-WHERE product_id IN (SELECT product_id 
-					 FROM product 
-					 WHERE title = 'Product met één genre om te verwijderen')
-GO
-
-DELETE FROM Product
-WHERE title = 'Product met één genre om te verwijderen'
-GO
-
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 11
 -- Verwijder meerdere genres van product (standaard genre 'No genre allocated' terugplaatsen)
+-- Result: Success
 BEGIN TRANSACTION
 
 DECLARE @GenreTableType GenreTableType
@@ -534,16 +442,4 @@ FROM Product AS p
 		ON p.product_id=pg.product_id
 WHERE p.product_id = @PRID
 
-COMMIT TRANSACTION
-GO
-
--- Opschonen van testdata
-DELETE FROM Product_Genre 
-WHERE product_id IN (SELECT product_id 
-					 FROM product 
-					 WHERE title = 'Product met twee genres om te verwijderen')
-GO
-
-DELETE FROM Product
-WHERE title = 'Product met twee genres om te verwijderen'
-GO
+ROLLBACK TRANSACTION

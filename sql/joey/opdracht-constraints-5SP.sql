@@ -1,8 +1,5 @@
--- Constraint #5, Stored Procedure uitwerking
--- Voor een geldige film recensie zijn cijfers voor Plot en Acting verplicht
--- en dient minimaal een van de rubrieken Cinematography en Music and Sound te 
--- worden beoordeeld. Als hieraan is voldaan, dan wordt de recensie geaccepteerd 
--- en wordt het totaalcijfer berekend. 
+USE odisee;
+GO
 
 -- Drop constraint on Review if exists
 ALTER TABLE [dbo].[Review] DROP CONSTRAINT IF EXISTS [CK_category_filled_check]
@@ -10,10 +7,13 @@ GO
 
 -- Drop trigger on Review if exists
 DROP TRIGGER IF EXISTS TR_Review_AI_AU
+DROP PROCEDURE IF EXISTS USP_Review_Insert
+DROP PROCEDURE IF EXISTS USP_Review_Update_ProductId
 GO
 
-DROP PROCEDURE IF EXISTS USP_Review_Insert
-GO
+--  --------------------------------------------------------
+--  Stored procedure
+--  --------------------------------------------------------
 CREATE PROCEDURE USP_Review_Insert (
 	@ProductID INT,
 	@EmailAddress VARCHAR(255),
@@ -81,9 +81,14 @@ AS
 GO
 
 
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 01
 -- SP insert tests
 -- Info: Execute the following statements one by one in sequence to check the SP.
 
+BEGIN TRANSACTION;
 -- No scores given for any category, should throw error code 50001
 DECLARE @DATE DATE = GETDATE();
 EXEC USP_Review_Insert 345635, 'joey.stoffels@gmail.com', @DATE, 'description', 8;
@@ -139,17 +144,11 @@ VALUES (345635, 'joey.stoffels@gmail.com', 'Music and Sound', 8);
 -- Music and Sound now present, should succeed.
 -- DECLARE @DATE DATE = GETDATE();
 EXEC USP_Review_Insert 345635, 'joey.stoffels@gmail.com', @DATE, 'description', 8;
+ROLLBACK TRANSACTION;
 
--- Cleanup actions
-DELETE FROM Review_Category
-WHERE product_id = 345635 AND email_address = 'joey.stoffels@gmail.com'
-
-DELETE FROM Review
-WHERE product_id = 345635 AND email_address = 'joey.stoffels@gmail.com';
-
-
-DROP PROCEDURE IF EXISTS USP_Review_Update_ProductId
-GO
+--  --------------------------------------------------------
+--  Stored procedure
+--  --------------------------------------------------------
 CREATE PROCEDURE USP_Review_Update_ProductId (
 	@PreviousProductID INT,
 	@ProductID INT,
@@ -215,10 +214,14 @@ AS
 	END CATCH
 GO
 
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 02
 -- SP update test
 -- Info: Execute the following statements one by one in sequence to check the trigger.
 
+BEGIN TRANSACTION;
 -- Setup testdata
 INSERT INTO Review_Category
 VALUES (345635, 'joey.stoffels@gmail.com', 'Plot', 8),
@@ -247,15 +250,4 @@ EXEC USP_Review_Update_ProductId 345635, 9999998, 'joey.stoffels@gmail.com';
 
 -- Check if update succeeded
 SELECT * FROM Review WHERE product_id = 9999998;
-
--- Clean up
-DELETE FROM Review
-WHERE product_id = 345635
-OR product_id = 9999998;
-
-DELETE FROM Review_Category
-WHERE product_id = 9999998 OR product_id = 345635
-AND email_address = 'joey.stoffels@gmail.com'
-
-DELETE FROM Product
-WHERE product_id = 9999998
+ROLLBACK TRANSACTION;

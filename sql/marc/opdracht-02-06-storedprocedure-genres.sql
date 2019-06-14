@@ -1,9 +1,9 @@
-/*
- Constraint 6. Genres voor films en spellen zijn verschillend, deze mogen niet bij het verkeerde media-item gebruikt worden. 
-			   Hetzelfde geld voor Review aspecten.
+USE odisee;
+GO
 
- Uitwerking Stored Procedures (Genres)
-*/
+DROP PROCEDURE IF EXISTS spProductInsert
+DROP PROCEDURE IF EXISTS spProductGenreUpdate
+GO
 
 -- Eerst voegen we een extra kolom genaamd product_type toe om een relatie te leggen tussen de genre en het type product
 IF NOT EXISTS(SELECT 1 FROM sys.columns 
@@ -70,9 +70,9 @@ CREATE TYPE GenreTableType AS TABLE (genre_name GENRE PRIMARY KEY)
 GO
 
 
--- Stored procedure om product toe te kunnen voegen, bevat t.b.v. demo alleen verplichte velden (geen, één en twee genres)
-DROP PROCEDURE IF EXISTS spProductInsert
-GO
+--  --------------------------------------------------------
+--  Stored procedure
+--  --------------------------------------------------------
 CREATE PROCEDURE spProductInsert (@product_type TYPE, @title TITLE, @price PRICE, @genres GenreTableType READONLY)
 AS
 BEGIN
@@ -119,9 +119,9 @@ BEGIN
 ;END
 GO
 
--- SP updaten genrenaam
-DROP PROCEDURE IF EXISTS spProductGenreUpdate
-GO
+--  --------------------------------------------------------
+--  Stored procedure
+--  --------------------------------------------------------
 CREATE PROCEDURE spProductGenreUpdate (@PRID ID, @oldGenre GENRE, @newGenre GENRE)
 AS
 BEGIN
@@ -152,24 +152,12 @@ BEGIN
 ;END
 GO
 
-/*
-
-	Testscenario's:
-
-	|X| Insert product zonder genre (krijgt standaard genre 'No genre allocated' toegekend)
-	|X| Insert product (movie) met één geldige genre
-	|X| Insert product (movie) met één ongeldige genre, resulteert in foutmelding
-	|X| Insert product (game) met één geldige genre
-	|X| Insert product (game) met één ongeldige genre, resulteert in foutmelding
-	|X| Update product (movie) met een geldige genre
-	|X| Update product (movie) met een ongeldige genre
-	|X| Update product (game) met een geldige genre
-	|X| Update product (game) met een ongeldige genre
-
-*/
-
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 01
 -- Insert product zonder genre (krijgt standaard genre 'No genre allocated' toegekend)
+-- Result: Success
 BEGIN TRANSACTION
 
 DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
@@ -184,10 +172,13 @@ FROM Product AS p
 WHERE p.product_id=@PRID;
 
 ROLLBACK TRANSACTION
-GO
 
-
--- Insert product (movie) met één geldige genre
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 02
+-- Insert product (movie) met Ã©Ã©n geldige genre
+-- Result: Success
 BEGIN TRANSACTION
 
 DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
@@ -196,7 +187,7 @@ DECLARE @GenreTableType GenreTableType;
 INSERT INTO @GenreTableType
 VALUES ('Action')
 
-EXEC spProductInsert 'Movie', 'Movie met één geldige genre', 3.50, @GenreTableType
+EXEC spProductInsert 'Movie', 'Movie met Ã©Ã©n geldige genre', 3.50, @GenreTableType
 
 SELECT p.title, pg.genre_name 
 FROM Product AS p
@@ -205,10 +196,13 @@ FROM Product AS p
 WHERE p.product_id=@PRID;
 
 ROLLBACK TRANSACTION
-GO
 
-
--- Insert product (movie) met één ongeldige genre, resulteert in foutmelding
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 03
+-- Insert product (movie) met Ã©Ã©n ongeldige genre, resulteert in foutmelding
+-- Result: Throw Error
 BEGIN TRANSACTION
 
 DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
@@ -218,13 +212,16 @@ INSERT INTO @GenreTableType
 VALUES ('Role-playing')
 
 PRINT 'Hier verwachten we een foutmelding'
-EXEC spProductInsert 'Movie', 'Movie met één ongeldige genre', 3.50, @GenreTableType
+EXEC spProductInsert 'Movie', 'Movie met Ã©Ã©n ongeldige genre', 3.50, @GenreTableType
 
 ROLLBACK TRANSACTION
-GO
 
-
--- Insert product (game) met één geldige genre
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 04
+-- Insert product (game) met Ã©Ã©n geldige genre
+-- Result: Success
 BEGIN TRANSACTION
 
 DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
@@ -233,7 +230,7 @@ DECLARE @GenreTableType GenreTableType;
 INSERT INTO @GenreTableType
 VALUES ('MMO')
 
-EXEC spProductInsert 'Game', 'Game met één geldige genre', 3.50, @GenreTableType
+EXEC spProductInsert 'Game', 'Game met Ã©Ã©n geldige genre', 3.50, @GenreTableType
 
 SELECT p.title, pg.genre_name 
 FROM Product AS p
@@ -242,10 +239,13 @@ FROM Product AS p
 WHERE p.product_id=@PRID;
 
 ROLLBACK TRANSACTION
-GO
 
-
--- Insert product (game) met één ongeldige genre, resulteert in foutmelding
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 05
+-- Insert product (game) met Ã©Ã©n ongeldige genre, resulteert in foutmelding
+-- Result: Throw Error
 BEGIN TRANSACTION
 
 DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
@@ -255,7 +255,7 @@ INSERT INTO @GenreTableType
 VALUES ('Documentary')
 
 PRINT 'Hier verwachten we een foutmelding'
-EXEC spProductInsert 'Game', 'Game met één ongeldige genre', 3.50, @GenreTableType
+EXEC spProductInsert 'Game', 'Game met Ã©Ã©n ongeldige genre', 3.50, @GenreTableType
 
 SELECT p.title, pg.genre_name 
 FROM Product AS p
@@ -264,10 +264,13 @@ FROM Product AS p
 WHERE p.product_id=@PRID;
 
 ROLLBACK TRANSACTION
-GO
 
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 06
 -- Update product (movie) met een geldige genre
+-- Result: Success
 BEGIN TRANSACTION
 
 DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
@@ -285,10 +288,13 @@ EXEC spProductGenreUpdate @PRID, 'Adventure', 'Fantasy'
 SELECT * FROM Product_Genre WHERE product_id = @PRID
 
 ROLLBACK TRANSACTION
-GO
 
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 07
 -- Update product (movie) met een ongeldige genre
+-- Result: Throw Error
 BEGIN TRANSACTION
 
 DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
@@ -305,10 +311,13 @@ EXEC spProductGenreUpdate @PRID, 'Romance', 'Action-Adventure'
 SELECT * FROM Product_Genre WHERE product_id = @PRID
 
 ROLLBACK TRANSACTION
-GO
 
-
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 08
 -- Update product (game) met een geldige genre
+-- Result: Success
 BEGIN TRANSACTION
 
 DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
@@ -326,9 +335,13 @@ EXEC spProductGenreUpdate @PRID, 'Action-Adventure', 'Simulation'
 SELECT * FROM Product_Genre WHERE product_id = @PRID
 
 ROLLBACK TRANSACTION
-GO
 
+--  --------------------------------------------------------
+--  Testscenario's
+--  --------------------------------------------------------
+-- Scenario 09
 -- Update product (game) met een ongeldige genre
+-- Result: Throw Error
 BEGIN TRANSACTION
 
 DECLARE @PRID ID = (SELECT MAX(product_id)+1 FROM Product);
@@ -343,4 +356,3 @@ PRINT  'Hier verwachten we een foutmelding'
 EXEC spProductGenreUpdate @PRID, 'Action-Adventure', 'Romance'
 
 ROLLBACK TRANSACTION
-GO
