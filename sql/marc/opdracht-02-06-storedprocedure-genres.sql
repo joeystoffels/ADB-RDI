@@ -76,6 +76,9 @@ GO
 CREATE PROCEDURE spProductInsert (@product_type TYPE, @title TITLE, @price PRICE, @genres GenreTableType READONLY)
 AS
 BEGIN
+
+    SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+	BEGIN TRANSACTION;
 	
 	SET NOCOUNT ON;
 
@@ -100,7 +103,6 @@ BEGIN
 				RETURN;
 			;END
 		;END
-
 		IF((SELECT product_type FROM Product WHERE product_id = @PRID) = 'Game')
 		BEGIN
 			IF ((SELECT COUNT(*) FROM Genre WHERE genre_name IN (SELECT genre_name FROM @genres) AND product_type = 'Game') = 0)
@@ -116,6 +118,8 @@ BEGIN
 		FROM @genres
 	;END	
 
+    COMMIT TRANSACTION;
+
 ;END
 GO
 
@@ -125,6 +129,9 @@ GO
 CREATE PROCEDURE spProductGenreUpdate (@PRID ID, @oldGenre GENRE, @newGenre GENRE)
 AS
 BEGIN
+
+    SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+	BEGIN TRANSACTION;
 
 	SET NOCOUNT ON;
 
@@ -136,7 +143,6 @@ BEGIN
 			RETURN;
 		;END
 	;END
-
 	IF((SELECT product_type FROM Product WHERE product_id = @PRID) = 'Game')
 	BEGIN
 		IF ((SELECT COUNT(*) FROM Genre WHERE genre_name = @newGenre AND product_type = 'Game') = 0)
@@ -148,6 +154,8 @@ BEGIN
 
 	UPDATE Product_Genre
 	SET genre_name = @newGenre WHERE product_id = @PRID AND genre_name = @oldGenre
+
+    COMMIT TRANSACTION;
 
 ;END
 GO

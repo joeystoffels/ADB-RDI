@@ -58,7 +58,10 @@ GO
 CREATE PROCEDURE spReviewCategoryInsert (@PRID ID, @email EMAIL, @categories CategoryTableType READONLY)
 AS
 BEGIN
-	
+
+	SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+	BEGIN TRANSACTION;
+
 	SET NOCOUNT ON;
 
 	IF((SELECT COUNT(*) FROM @categories) = 0)
@@ -76,7 +79,6 @@ BEGIN
 			RETURN;
 		;END
 	;END
-
 	IF((SELECT product_type FROM Product WHERE product_id = @PRID) = 'Game')
 	BEGIN
 		IF ((SELECT COUNT(*) FROM Category WHERE category_name IN (SELECT category_name FROM @categories) AND product_type = 'Game') = 0)
@@ -90,6 +92,8 @@ BEGIN
 	INSERT INTO Review_Category
 	SELECT @PRID, @email, category_name, score
 	FROM @categories
+
+    COMMIT TRANSACTION;
 
 ;END
 GO

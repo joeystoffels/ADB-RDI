@@ -80,6 +80,9 @@ AFTER INSERT, UPDATE
 AS
 BEGIN
 
+    SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+	BEGIN TRANSACTION;
+
 	SET NOCOUNT ON;
 
 	DECLARE @PRID ID = (SELECT product_id FROM inserted);
@@ -94,7 +97,6 @@ BEGIN
 			RETURN;
 		;END
 	;END
-
 	IF((SELECT product_type FROM Product WHERE product_id = @PRID) = 'Game')
 	BEGIN
 		IF ((SELECT COUNT(*) FROM Genre WHERE genre_name = @genre AND product_type = 'Game') = 0)
@@ -104,7 +106,9 @@ BEGIN
 			RETURN;
 		;END
 	;END
-	
+
+	COMMIT TRANSACTION;
+
 ;END
 GO
 
