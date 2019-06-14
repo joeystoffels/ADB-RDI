@@ -7,7 +7,7 @@ GO
 WITH aaneengeslotenReeksCTE
      AS (SELECT MIN(product_id) AS startID, 
                 MAX(product_id) AS eindID, 
-                COUNT(*) AS maxReeksBestaand
+                (COUNT(*)-1) AS maxReeksBestaand
          FROM
          (
              SELECT product_id, 
