@@ -4,15 +4,13 @@ USE ODISEE;
 GO
 DECLARE @DIRECTOR_ID INT= 65358;
 WITH cte
-     AS (SELECT PR.person_id, 
-                PG.genre_name, 
+     AS (SELECT MD.person_id,
+                PG.genre_name,
                 COUNT(PG.genre_name) AS 'Total'
          FROM Movie_Director MD
-              INNER JOIN Product P ON MD.product_id = MD.product_id
-              INNER JOIN Person PR ON MD.person_id = PR.person_id
               INNER JOIN Product_Genre PG ON MD.product_id = PG.product_id
          WHERE MD.person_id = @DIRECTOR_ID
-         GROUP BY PR.person_id, 
+         GROUP BY MD.person_id,
                   PG.genre_name)
      SELECT person_id, 
             genre_name, 
