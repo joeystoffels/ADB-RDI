@@ -15,6 +15,10 @@ CREATE PROCEDURE SP_PurchaseInsert
 )
 AS
     BEGIN
+
+        SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+	    BEGIN TRANSACTION;
+
         SET NOCOUNT ON;
 
 		 IF NOT EXISTS
@@ -33,6 +37,8 @@ AS
 
         SET NOCOUNT OFF;
     END;
+
+    COMMIT TRANSACTION;
 GO
 
 --  --------------------------------------------------------

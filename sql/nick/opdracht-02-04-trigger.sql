@@ -11,6 +11,10 @@ CREATE TRIGGER TR_WatchMovieInPeriod ON Purchase
 AFTER INSERT, UPDATE
 AS
      BEGIN
+
+        SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+	    BEGIN TRANSACTION;
+
          SET NOCOUNT ON; -- Stops the message that shows the count of the number of rows affected
          -- Declare variables
          DECLARE @email_address NVARCHAR(4000);
@@ -46,7 +50,9 @@ AS
              THROW; -- Using TROW handles ROLLBACK and bubbles up the thrown error.
          END CATCH;
      END;
-	 GO
+
+     COMMIT TRANSACTION;
+ GO
 
 --  --------------------------------------------------------
 --  Demo data
