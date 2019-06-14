@@ -6,11 +6,11 @@ SET STATISTICS IO ON;
 GO
 
 WITH cte
-     AS (SELECT P.product_id AS 'Start', 
+     AS (SELECT P.product_id AS 'Start',
                 ISNULL(LEAD(P.product_id) OVER(
-                ORDER BY P.product_id), 0) AS 'End', 
+                ORDER BY P.product_id), 0) AS 'End',
                 ISNULL(LEAD(P.product_id) OVER(
-                       ORDER BY P.product_id ASC) - product_id, 0) AS 'Gap'
+                       ORDER BY P.product_id) - product_id, 0) AS 'Gap'
          FROM Product P
          WHERE P.product_type = 'Movie')
      SELECT TOP 1 *
