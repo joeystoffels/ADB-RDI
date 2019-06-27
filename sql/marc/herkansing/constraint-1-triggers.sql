@@ -80,7 +80,10 @@ BEGIN
 	SET NOCOUNT ON;
 
 	-- Controleer of er een product met dit product_id bestaat
-	IF EXISTS (SELECT * FROM deleted AS d JOIN Product_Genre AS pg on d.product_id = pg.product_id HAVING COUNT(pg.genre_name) = 0)
+	IF EXISTS (SELECT * 
+		FROM deleted AS d 
+			JOIN Product_Genre AS pg ON d.product_id = pg.product_id 
+		HAVING COUNT(pg.genre_name) = 0)
 
 	THROW 50001, 'At least one genre required. Deleting this genre(s) would result in a total of 0 genres.', 1;
 
@@ -138,7 +141,6 @@ go
 -- [Scenario 01] : Film toevoegen zonder genre
 -- Result: Success (standard genre added)
 
--- We willen een dirty read toestaan
 BEGIN TRANSACTION;
 
 INSERT INTO Product (product_id, product_type, title, movie_default_price, publication_year) 
@@ -165,6 +167,7 @@ go
 --  --------------------------------------------------------
 -- [Scenario 02] : Spel toevoegen zonder genre
 -- Result: Success (standard genre added)
+
 BEGIN TRANSACTION;
 
 INSERT INTO Product (product_id, product_type, title, movie_default_price, publication_year) 
@@ -191,6 +194,7 @@ go
 --  --------------------------------------------------------
 -- [Scenario 03] : Film en spel toevoegen zonder genre
 -- Result: Success (standard genre added)
+
 BEGIN TRANSACTION;
 
 INSERT INTO Product (product_id, product_type, title, movie_default_price, publication_year) 
@@ -217,6 +221,7 @@ go
 --  --------------------------------------------------------
 -- [Scenario 04] : Film toevoegen met één genre
 -- Result: Success
+
 BEGIN TRANSACTION;
 
 INSERT INTO Product (product_id, product_type, title, movie_default_price, publication_year) 
@@ -251,6 +256,7 @@ go
 --  --------------------------------------------------------
 -- [Scenario 05] : Film toevoegen met twee genres
 -- Result: Success
+
 BEGIN TRANSACTION;
 
 INSERT INTO Product (product_id, product_type, title, movie_default_price, publication_year) 
@@ -289,6 +295,7 @@ go
 --  --------------------------------------------------------
 -- [Scenario 06] : Spel toevoegen met één genre
 -- Result: Success
+
 BEGIN TRANSACTION;
 
 INSERT INTO Product (product_id, product_type, title, movie_default_price, publication_year) 
@@ -323,6 +330,7 @@ go
 --  --------------------------------------------------------
 -- [Scenario 07] : Spel toevoegen met twee genres
 -- Result: Success
+
 BEGIN TRANSACTION;
 
 INSERT INTO Product (product_id, product_type, title, movie_default_price, publication_year) 
@@ -361,6 +369,7 @@ go
 --  --------------------------------------------------------
 -- [Scenario 08] : Film en spel toevoegen met één genre
 -- Result: Success
+
 BEGIN TRANSACTION;
 
 INSERT INTO Product (product_id, product_type, title, movie_default_price, publication_year) 
@@ -399,6 +408,7 @@ go
 --  --------------------------------------------------------
 -- [Scenario 09] : Film en spel toevoegen met twee genres
 -- Result: Success
+
 BEGIN TRANSACTION;
 
 INSERT INTO Product (product_id, product_type, title, movie_default_price, publication_year) 
@@ -445,6 +455,8 @@ go
 --  --------------------------------------------------------
 -- [Scenario 10] : Alle genres van film of spel verwijderen
 -- Result: Throw Error
+
+SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
 BEGIN TRANSACTION;
 
 DELETE FROM Product_Genre
@@ -458,6 +470,8 @@ go
 --  --------------------------------------------------------
 -- [Scenario 11] : Eén genre van film of spel verwijderen
 -- Result: Success
+
+SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
 BEGIN TRANSACTION;
 
 DELETE FROM Product_Genre
@@ -471,6 +485,7 @@ go
 --  --------------------------------------------------------
 -- [Scenario 12] : Genre toevoegen aan niet bestaande film of spel
 -- Result: Throw Error
+
 BEGIN TRANSACTION;
 
 INSERT INTO Product_Genre
