@@ -8,9 +8,9 @@ GO
 DROP TRIGGER IF EXISTS TR_Review_AI_AU
 GO
 
---  --------------------------------------------------------
---  Trigger
---  --------------------------------------------------------
+----------------------------------------------------------
+-- Trigger
+----------------------------------------------------------
 CREATE TRIGGER TR_Review_AI_AU ON Review
 AFTER INSERT, UPDATE
 AS
@@ -69,135 +69,130 @@ BEGIN
 	END CATCH
 END;
 
+
+----------------------------------------------------------
+-- Testscenario's
+----------------------------------------------------------
 -- Scenario 01
--- No scores given for any category, should throw error code 50001
+-- No scores given for any category
 -- Result: Throw error 50001
 BEGIN TRANSACTION
 INSERT INTO Review
 VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 5);
 ROLLBACK TRANSACTION;
 
--- Add a score for categoy Acting
+
+-- Scenario 02
+-- No score given for Plot
+-- Result: Throws error 50003
+BEGIN TRANSACTION
 INSERT INTO Review_Category
 VALUES (345635, 'joey.stoffels@gmail.com', 'Acting', 8);
 
--- No score given for Plot, should throw error code 50003
 INSERT INTO Review
 VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 5);
+ROLLBACK TRANSACTION
 
 
-
-
-
-
-
---  --------------------------------------------------------
---  Testscenario's
---  --------------------------------------------------------
--- Scenario 01
--- Trigger insert tests
--- Info: Execute the following statements one by one in sequence to check the trigger.
-
--- No scores given for any category, should throw error code 50001
-INSERT INTO Review
-VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 5);
-
--- Add a score for categoy Acting
-INSERT INTO Review_Category
-VALUES (345635, 'joey.stoffels@gmail.com', 'Acting', 8);
-
--- No score given for Plot, should throw error code 50003
-INSERT INTO Review
-VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 5);
-
--- Remove score for Acting
-DELETE FROM Review_Category
-WHERE product_id = 345635 AND category_name = 'Acting' AND email_address = 'joey.stoffels@gmail.com'
-
--- Add a score for categoy Plot
+-- Scenario 03
+-- No score given for Acting
+-- Result: Throws error 50002
+BEGIN TRANSACTION
 INSERT INTO Review_Category
 VALUES (345635, 'joey.stoffels@gmail.com', 'Plot', 8);
 
--- No score given for Acting, should throw error code 50002
 INSERT INTO Review
 VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 5);
+ROLLBACK TRANSACTION
 
--- Now add a score for category Acting
+
+-- Scenario 04
+-- No score given for Music and Sound or Cinematography
+-- Result: Throws error 50004
+BEGIN TRANSACTION
 INSERT INTO Review_Category
-VALUES (345635, 'joey.stoffels@gmail.com', 'Acting', 8);
+VALUES	(345635, 'joey.stoffels@gmail.com', 'Acting', 8),
+		(345635, 'joey.stoffels@gmail.com', 'Plot', 8);
 
--- No score given for Music and Sound, should throw error code 50004
 INSERT INTO Review
 VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 5);
+ROLLBACK TRANSACTION
 
--- Now add a score for categoy Cinematography
+
+-- Scenario 05
+-- All required scores available with Cinematography
+-- Result: Success
+BEGIN TRANSACTION
 INSERT INTO Review_Category
-VALUES (345635, 'joey.stoffels@gmail.com', 'Cinematography', 8);
+VALUES	(345635, 'joey.stoffels@gmail.com', 'Acting', 8),
+		(345635, 'joey.stoffels@gmail.com', 'Plot', 8),
+		(345635, 'joey.stoffels@gmail.com', 'Cinematography', 8);
 
--- Cinematography now present, should succeed.
 INSERT INTO Review
 VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 5);
+ROLLBACK TRANSACTION
 
--- Remove added review
-DELETE FROM Review
-WHERE product_id = 345635 AND email_address = 'joey.stoffels@gmail.com';
 
--- Remove score for Cinematography
-DELETE FROM Review_Category
-WHERE product_id = 345635 AND category_name = 'Cinematography'
-
--- Add a score for categoy Music and Sound
+-- Scenario 06
+-- All required scores available with Music and Sound
+-- Result: Success
+BEGIN TRANSACTION
 INSERT INTO Review_Category
-VALUES (345635, 'joey.stoffels@gmail.com', 'Music and Sound', 8);
+VALUES	(345635, 'joey.stoffels@gmail.com', 'Acting', 8),
+		(345635, 'joey.stoffels@gmail.com', 'Plot', 8),
+		(345635, 'joey.stoffels@gmail.com', 'Music and Sound', 8);
 
--- Music and Sound now present, should succeed.
 INSERT INTO Review
 VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 5);
-
--- Check if update succeeded
-SELECT * FROM Review WHERE product_id = 345635;
-
--- Remove added items
-DELETE FROM Review WHERE email_address = 'joey.stoffels@gmail.com'
-DELETE FROM Review_Category WHERE email_address = 'joey.stoffels@gmail.com'
+ROLLBACK TRANSACTION
 
 
--- Scenario 02
--- Trigger update test
--- Info: Execute the following statements one by one in sequence to check the trigger.
-
+-- Scenario 07
+-- No score given for Music and Sound or cinematography
+-- Result: Throws error 50004
+BEGIN TRANSACTION
 INSERT INTO Review_Category
-VALUES (345635, 'joey.stoffels@gmail.com', 'Plot', 8),
-(345635, 'joey.stoffels@gmail.com', 'Acting', 8),
-(345635, 'joey.stoffels@gmail.com', 'Cinematography', 8);
+VALUES	(345635, 'joey.stoffels@gmail.com', 'Plot', 8),
+		(345635, 'joey.stoffels@gmail.com', 'Acting', 8),
+		(345635, 'joey.stoffels@gmail.com', 'Cinematography', 8);
 
 INSERT INTO Product
 VALUES	(9999998, 'Movie', null, 'testproduct', null, null, 2.00, 1998, null, null, null)
 
 INSERT INTO Review_Category
-VALUES (9999998, 'joey.stoffels@gmail.com', 'Plot', 8),
-(9999998, 'joey.stoffels@gmail.com', 'Acting', 8);
+VALUES	(9999998, 'joey.stoffels@gmail.com', 'Plot', 8),
+		(9999998, 'joey.stoffels@gmail.com', 'Acting', 8);
 
 INSERT INTO Review
-VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 5);
+VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 8);
 
--- No score given for Music and Sound or cinematography, should throw error code 50004
 UPDATE Review
 SET product_id = 9999998
 WHERE product_id = 345635 AND email_address = 'joey.stoffels@gmail.com';
+ROLLBACK TRANSACTION
 
--- Now add a Cinematography score
+
+-- Scenario 08
+-- All required scores available with Cinematography
+-- Result: Success
+BEGIN TRANSACTION
 INSERT INTO Review_Category
-VALUES (9999998, 'joey.stoffels@gmail.com', 'Cinematography', 8);
+VALUES	(345635, 'joey.stoffels@gmail.com', 'Plot', 8),
+		(345635, 'joey.stoffels@gmail.com', 'Acting', 8),
+		(345635, 'joey.stoffels@gmail.com', 'Cinematography', 8);
 
--- Should succeed since it now meets the conditions
+INSERT INTO Product
+VALUES	(9999998, 'Movie', null, 'testproduct', null, null, 2.00, 1998, null, null, null)
+
+INSERT INTO Review_Category
+VALUES	(9999998, 'joey.stoffels@gmail.com', 'Plot', 8),
+		(9999998, 'joey.stoffels@gmail.com', 'Acting', 8),
+		(9999998, 'joey.stoffels@gmail.com', 'Cinematography', 8);
+
+INSERT INTO Review
+VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 8);
+
 UPDATE Review
 SET product_id = 9999998
 WHERE product_id = 345635 AND email_address = 'joey.stoffels@gmail.com';
-
--- Check if update succeeded
-SELECT * FROM Review WHERE product_id = 9999998;
-
--- Remove added items
-DELETE FROM Review WHERE email_address = 'joey.stoffels@gmail.com'
-DELETE FROM Review_Category WHERE email_address = 'joey.stoffels@gmail.com'
+ROLLBACK TRANSACTION
