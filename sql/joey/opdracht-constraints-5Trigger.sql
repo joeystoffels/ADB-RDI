@@ -23,42 +23,42 @@ BEGIN
 
 	BEGIN TRY
 
-		IF NOT EXISTS (
-			SELECT *
+		IF (
+			SELECT COUNT(*)
 			FROM Review_Category RC
 			INNER JOIN Inserted I ON RC.product_id = I.product_id
-			AND RC.email_address = I.email_address)
+			AND RC.email_address = I.email_address) < (SELECT COUNT(*) FROM Inserted)
 
 		THROW 50001, 'No matching scores found for any category.', 1;
 
-		IF NOT EXISTS (
-			SELECT *
+		IF (
+			SELECT COUNT(*)
 			FROM Review_Category RC
 			INNER JOIN Inserted I ON RC.product_id = I.product_id
 			AND RC.email_address = I.email_address
 			WHERE RC.category_name = 'Acting'
-			AND RC.score IS NOT NULL)
+			AND RC.score IS NOT NULL) < (SELECT COUNT(*) FROM Inserted)
 
 		THROW 50002, 'Score for category Acting is missing', 1;
 
-		IF NOT EXISTS (
-			SELECT *
+		IF (
+			SELECT COUNT(*)
 			FROM Review_Category RC
 			INNER JOIN Inserted I ON RC.product_id = I.product_id
 			AND RC.email_address = I.email_address
 			WHERE RC.category_name = 'Plot'
-			AND RC.score IS NOT NULL)
+			AND RC.score IS NOT NULL) < (SELECT COUNT(*) FROM Inserted)
 
 		THROW 50003, 'Score for category Plot is missing', 1;
 
-		IF NOT EXISTS (
-			SELECT *
+		IF (
+			SELECT COUNT(*)
 			FROM Review_Category RC
 			INNER JOIN Inserted I ON RC.product_id = I.product_id
 			AND RC.email_address = I.email_address
 			WHERE RC.category_name = 'Cinematography'
 			OR RC.category_name = 'Music and Sound'
-			AND RC.score IS NOT NULL)
+			AND RC.score IS NOT NULL) < (SELECT COUNT(*) FROM Inserted)
 
 		THROW 50004, 'Score for category Cinematography or Music and Sound is missing', 1;
 
@@ -69,6 +69,8 @@ BEGIN
 	END CATCH
 END;
 
+DELETE FROM Review_Category  WHERE email_address = 'joey.stoffels@gmail.com'
+DELETE FROM Review WHERE email_address = 'joey.stoffels@gmail.com'
 
 ----------------------------------------------------------
 -- Testscenario's
@@ -78,7 +80,7 @@ END;
 -- Result: Throw error 50001
 BEGIN TRANSACTION
 INSERT INTO Review
-VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 5);
+VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 8);
 ROLLBACK TRANSACTION;
 
 
@@ -90,8 +92,8 @@ INSERT INTO Review_Category
 VALUES (345635, 'joey.stoffels@gmail.com', 'Acting', 8);
 
 INSERT INTO Review
-VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 5);
-ROLLBACK TRANSACTION
+VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 8);
+ROLLBACK TRANSACTION;
 
 
 -- Scenario 03
@@ -102,8 +104,8 @@ INSERT INTO Review_Category
 VALUES (345635, 'joey.stoffels@gmail.com', 'Plot', 8);
 
 INSERT INTO Review
-VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 5);
-ROLLBACK TRANSACTION
+VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 8);
+ROLLBACK TRANSACTION;
 
 
 -- Scenario 04
@@ -115,8 +117,8 @@ VALUES	(345635, 'joey.stoffels@gmail.com', 'Acting', 8),
 		(345635, 'joey.stoffels@gmail.com', 'Plot', 8);
 
 INSERT INTO Review
-VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 5);
-ROLLBACK TRANSACTION
+VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 8);
+ROLLBACK TRANSACTION;
 
 
 -- Scenario 05
@@ -129,8 +131,8 @@ VALUES	(345635, 'joey.stoffels@gmail.com', 'Acting', 8),
 		(345635, 'joey.stoffels@gmail.com', 'Cinematography', 8);
 
 INSERT INTO Review
-VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 5);
-ROLLBACK TRANSACTION
+VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 8);
+ROLLBACK TRANSACTION;
 
 
 -- Scenario 06
@@ -143,8 +145,8 @@ VALUES	(345635, 'joey.stoffels@gmail.com', 'Acting', 8),
 		(345635, 'joey.stoffels@gmail.com', 'Music and Sound', 8);
 
 INSERT INTO Review
-VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 5);
-ROLLBACK TRANSACTION
+VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 8);
+ROLLBACK TRANSACTION;
 
 
 -- Scenario 07
@@ -169,7 +171,7 @@ VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 8);
 UPDATE Review
 SET product_id = 9999998
 WHERE product_id = 345635 AND email_address = 'joey.stoffels@gmail.com';
-ROLLBACK TRANSACTION
+ROLLBACK TRANSACTION;
 
 
 -- Scenario 08
@@ -195,4 +197,89 @@ VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 8);
 UPDATE Review
 SET product_id = 9999998
 WHERE product_id = 345635 AND email_address = 'joey.stoffels@gmail.com';
+ROLLBACK TRANSACTION;
+
+
+-- Scenario 09
+-- No category scores available for second Review entry
+-- Result: Throws error 50002
+BEGIN TRANSACTION
+INSERT INTO Review_Category
+VALUES	(345635, 'joey.stoffels@gmail.com', 'Acting', 8),
+		(345635, 'joey.stoffels@gmail.com', 'Plot', 8),
+		(345635, 'joey.stoffels@gmail.com', 'Cinematography', 8);
+
+INSERT INTO Review
+VALUES	(345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 8),
+		(345636, 'joey.stoffels@gmail.com', GETDATE(), 'description', 8);
+ROLLBACK TRANSACTION
+
+
+-- Scenario 10
+-- Second entry has no Plot score
+-- Result: Throws error 50003
+BEGIN TRANSACTION
+INSERT INTO Review_Category
+VALUES	(345635, 'joey.stoffels@gmail.com', 'Acting', 8),
+		(345635, 'joey.stoffels@gmail.com', 'Plot', 8),
+		(345635, 'joey.stoffels@gmail.com', 'Cinematography', 8),
+		(345636, 'joey.stoffels@gmail.com', 'Acting', 8);
+
+INSERT INTO Review
+VALUES	(345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 8),
+		(345636, 'joey.stoffels@gmail.com', GETDATE(), 'description', 8);
+ROLLBACK TRANSACTION
+
+
+-- Scenario 11
+-- Second entry has no Cinematorgraphy or Music and Sound score
+-- Result: Throws error 50004
+BEGIN TRANSACTION
+INSERT INTO Review_Category
+VALUES	(345635, 'joey.stoffels@gmail.com', 'Acting', 8),
+		(345635, 'joey.stoffels@gmail.com', 'Plot', 8),
+		(345635, 'joey.stoffels@gmail.com', 'Cinematography', 8),
+		(345636, 'joey.stoffels@gmail.com', 'Acting', 8),
+		(345636, 'joey.stoffels@gmail.com', 'Plot', 8);
+
+INSERT INTO Review
+VALUES	(345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 8),
+		(345636, 'joey.stoffels@gmail.com', GETDATE(), 'description', 8);
+ROLLBACK TRANSACTION
+
+
+-- TODO FIX!!
+-- Scenario 12
+-- Both entries have valid category scores
+-- Result: Succeed
+BEGIN TRANSACTION
+INSERT INTO Review_Category
+VALUES	(345635, 'joey.stoffels@gmail.com', 'Acting', 8),
+		(345635, 'joey.stoffels@gmail.com', 'Plot', 8),
+		(345635, 'joey.stoffels@gmail.com', 'Cinematography', 8),
+		(345636, 'joey.stoffels@gmail.com', 'Acting', 8),
+		(345636, 'joey.stoffels@gmail.com', 'Plot', 8),
+		(345636, 'joey.stoffels@gmail.com', 'Music and Sound', 8);
+
+INSERT INTO Review
+VALUES	(345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 8),
+		(345636, 'joey.stoffels@gmail.com', GETDATE(), 'description', 8);
+ROLLBACK TRANSACTION
+
+
+-- Scenario 13
+-- Other emailaddress for second entry, no scores found
+-- Result: Throws error 50002
+BEGIN TRANSACTION
+INSERT INTO Review_Category
+VALUES	(345635, 'joey.stoffels@gmail.com', 'Acting', 8),
+		(345635, 'joey.stoffels@gmail.com', 'Plot', 8),
+		(345635, 'joey.stoffels@gmail.com', 'Cinematography', 8),
+		(345636, 'joey.stoffels@gmail.com', 'Acting', 8),
+		(345636, 'joey.stoffels@gmail.com', 'Plot', 8),
+		(345636, 'joey.stoffels@gmail.com', 'Music and Sound', 8);
+
+INSERT INTO Review
+VALUES	(345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 8),
+		(345636, 'nickhartjes@gmail.com', GETDATE(), 'description', 8);
 ROLLBACK TRANSACTION
