@@ -18,9 +18,7 @@ BEGIN
 
 	SET NOCOUNT ON;
 
-    SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
-	BEGIN TRANSACTION;
-
+	-- Trigger should not process if insert table is empty.
 	IF NOT EXISTS (SELECT * FROM Inserted) RETURN;
 
 	BEGIN TRY
@@ -69,9 +67,28 @@ BEGIN
 		PRINT 'In catch block of TR_Review_AI_AU';
 		THROW;
 	END CATCH
-
-	COMMIT TRANSACTION;
 END;
+
+-- Scenario 01
+-- No scores given for any category, should throw error code 50001
+-- Result: Throw error 50001
+BEGIN TRANSACTION
+INSERT INTO Review
+VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 5);
+ROLLBACK TRANSACTION;
+
+-- Add a score for categoy Acting
+INSERT INTO Review_Category
+VALUES (345635, 'joey.stoffels@gmail.com', 'Acting', 8);
+
+-- No score given for Plot, should throw error code 50003
+INSERT INTO Review
+VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 5);
+
+
+
+
+
 
 
 --  --------------------------------------------------------
@@ -81,7 +98,6 @@ END;
 -- Trigger insert tests
 -- Info: Execute the following statements one by one in sequence to check the trigger.
 
-BEGIN TRANSACTION;
 -- No scores given for any category, should throw error code 50001
 INSERT INTO Review
 VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 5);
@@ -106,7 +122,7 @@ VALUES (345635, 'joey.stoffels@gmail.com', 'Plot', 8);
 INSERT INTO Review
 VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 5);
 
--- Now add a score for categoy Acting
+-- Now add a score for category Acting
 INSERT INTO Review_Category
 VALUES (345635, 'joey.stoffels@gmail.com', 'Acting', 8);
 
@@ -137,16 +153,19 @@ VALUES (345635, 'joey.stoffels@gmail.com', 'Music and Sound', 8);
 -- Music and Sound now present, should succeed.
 INSERT INTO Review
 VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 5);
-ROLLBACK TRANSACTION;
 
---  --------------------------------------------------------
---  Testscenario's
---  --------------------------------------------------------
+-- Check if update succeeded
+SELECT * FROM Review WHERE product_id = 345635;
+
+-- Remove added items
+DELETE FROM Review WHERE email_address = 'joey.stoffels@gmail.com'
+DELETE FROM Review_Category WHERE email_address = 'joey.stoffels@gmail.com'
+
+
 -- Scenario 02
 -- Trigger update test
 -- Info: Execute the following statements one by one in sequence to check the trigger.
 
-BEGIN TRANSACTION;
 INSERT INTO Review_Category
 VALUES (345635, 'joey.stoffels@gmail.com', 'Plot', 8),
 (345635, 'joey.stoffels@gmail.com', 'Acting', 8),
@@ -178,4 +197,7 @@ WHERE product_id = 345635 AND email_address = 'joey.stoffels@gmail.com';
 
 -- Check if update succeeded
 SELECT * FROM Review WHERE product_id = 9999998;
-ROLLBACK TRANSACTION;
+
+-- Remove added items
+DELETE FROM Review WHERE email_address = 'joey.stoffels@gmail.com'
+DELETE FROM Review_Category WHERE email_address = 'joey.stoffels@gmail.com'

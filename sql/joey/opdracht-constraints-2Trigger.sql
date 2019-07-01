@@ -23,9 +23,6 @@ BEGIN
 	-- Should not process when a previous_product_id exists.
 	IF NOT EXISTS (SELECT * FROM inserted WHERE previous_product_id IS NOT NULL) RETURN;
 
-    SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
-	BEGIN TRANSACTION;
-
 	BEGIN TRY
 		PRINT 'In try block of TR_Products_AI_AU';
 
@@ -57,8 +54,6 @@ BEGIN
 		PRINT 'In catch block of TR_Products_AI_AU';
 		THROW;
 	END CATCH
-
-	COMMIT TRANSACTION;
 END;
 
 
