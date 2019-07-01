@@ -35,14 +35,16 @@ AS
 
 	BEGIN TRY
 
-		IF EXISTS (SELECT *
+		IF EXISTS (
+			SELECT *
 			FROM Product P
 			WHERE P.product_id = @PreviousProductId
 			AND P.product_type != 'Movie')
 
 		THROW 50001, 'Previous part is not of type Movie', 1;
 
-		IF EXISTS (SELECT *
+		IF EXISTS (
+			SELECT *
 			FROM Product P
 			WHERE P.product_id = @PreviousProductId
 			AND P.publication_year >= @PublicationYear)
@@ -82,9 +84,7 @@ BEGIN TRANSACTION;
 EXEC USP_Products_Insert 9999998, 'Movie', 345635, 'Star Wars Latest', null, null, 2.00, 1998, null, null, null
 ROLLBACK TRANSACTION;
 
---  --------------------------------------------------------
---  Testscenario's
---  --------------------------------------------------------
+
 -- Scenario 02
 -- Publication year is after 1999
 -- Result: Success
@@ -92,9 +92,7 @@ BEGIN TRANSACTION;
 EXEC USP_Products_Insert 9999999, 'Movie', 345635, 'Star Wars Latest', null, null, 2.00, 2000, null, null, null
 ROLLBACK TRANSACTION;
 
---  --------------------------------------------------------
---  Testscenario's
---  --------------------------------------------------------
+
 -- Scenario 03
 -- Same publication year
 -- Result: Throw Error
@@ -102,9 +100,7 @@ BEGIN TRANSACTION;
 EXEC USP_Products_Insert 9999999, 'Movie', 345635, 'Star Wars Latest', null, null, 2.00, 1999, null, null, null
 ROLLBACK TRANSACTION;
 
---  --------------------------------------------------------
---  Testscenario's
---  --------------------------------------------------------
+
 -- Scenario 04
 -- Previous part is of type 'Game' instead of 'Movie'
 -- Result: Throw Error
@@ -112,9 +108,7 @@ BEGIN TRANSACTION;
 EXEC USP_Products_Insert 9999999, 'Movie', 412331, 'Star Wars Latest', null, null, 2.00, 1999, null, null, null
 ROLLBACK TRANSACTION;
 
---  --------------------------------------------------------
---  Testscenario's
---  --------------------------------------------------------
+
 -- Scenario 05
 -- Bypass SP because product type is not 'Movie'
 -- Result: Success
@@ -122,9 +116,7 @@ BEGIN TRANSACTION;
 EXEC USP_Products_Insert 9999998, 'Game', 345635, 'Star Wars Latest', null, null, 2.00, 1999, null, null, null
 ROLLBACK TRANSACTION;
 
---  --------------------------------------------------------
---  Testscenario's
---  --------------------------------------------------------
+
 -- Scenario 06
 -- Bypass SP because previous part is null
 -- Result: Success
@@ -197,9 +189,7 @@ BEGIN TRANSACTION;
 EXEC USP_Products_Update_PreviousProductId 345635, 313503
 ROLLBACK TRANSACTION;
 
---  --------------------------------------------------------
---  Testscenario's
---  --------------------------------------------------------
+
 -- Scenario 08
 -- Publication year is before 1999 (1996).
 -- Result: Success
@@ -207,9 +197,7 @@ BEGIN TRANSACTION;
 EXEC USP_Products_Update_PreviousProductId 345635, 313508
 ROLLBACK TRANSACTION;
 
---  --------------------------------------------------------
---  Testscenario's
---  --------------------------------------------------------
+
 -- Scenario 09
 -- Same publication year.
 -- Result: Throw error

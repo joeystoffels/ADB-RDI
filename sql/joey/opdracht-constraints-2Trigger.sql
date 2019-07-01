@@ -201,7 +201,7 @@ VALUES	(9999999, 'Movie', 345635, 'Star Wars Latest', null, null, 2.00, 2000, nu
 ROLLBACK TRANSACTION;
 
 
--- Scenario 13
+-- Scenario 15
 -- Should fail because insert contains a non-movie type
 -- Result: Throw error 50001
 BEGIN TRANSACTION;
