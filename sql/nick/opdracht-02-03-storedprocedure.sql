@@ -3,25 +3,6 @@ GO
 DROP PROCEDURE IF EXISTS SP_UserSubscriptionInsert;
 DROP PROCEDURE IF EXISTS SP_InsertDemoData;
 GO
-EXEC sp_set_session_context 
-     'email_address', 
-     'test@test.nl';
-EXEC sp_set_session_context 
-     'startDate01', 
-     '2017-03-01';
-EXEC sp_set_session_context 
-     'endDate01', 
-     '2018-03-01';
-EXEC sp_set_session_context 
-     'startDate02', 
-     '2018-05-01';
-EXEC sp_set_session_context 
-     'endDate02', 
-     '2019-05-01';
-EXEC sp_set_session_context 
-     'startDate03', 
-     '2019-06-01';
-GO
 
 --  --------------------------------------------------------
 --  Stored procedure
@@ -50,10 +31,10 @@ AS
             SELECT *
             FROM User_Subscription
             WHERE ISNULL(@endDate, DATEADD(year, 100, @endDate)) <= subscription_startdate
-               OR subscription_enddate >= @startDate
+               OR ISNULL(subscription_enddate, DATEADD(year, 100, GETDATE())) >= @startDate
                 AND email_address = @email_address
         )
-        THROW 50001, 'Overlap in subscription period', 1;
+        THROW 50001, 'Inserted subscription(s) overlaps an excisting subscription period.', 1;
 
     INSERT INTO User_Subscription
     VALUES
@@ -81,55 +62,49 @@ GO
 
 CREATE PROCEDURE SP_InsertDemoData
 AS
-    BEGIN
-        SET NOCOUNT ON;
-        DECLARE @email_address VARCHAR(255)= CONVERT(VARCHAR(255), SESSION_CONTEXT(N'email_address'));
-        DECLARE @startDate01 DATE= CONVERT(DATE, SESSION_CONTEXT(N'startDate01'));
-        DECLARE @endDate01 DATE= CONVERT(DATE, SESSION_CONTEXT(N'endDate01'));
-        DECLARE @startDate02 DATE= CONVERT(DATE, SESSION_CONTEXT(N'startDate02'));
-        DECLARE @endDate02 DATE= CONVERT(DATE, SESSION_CONTEXT(N'endDate02'));
-        DECLARE @startDate03 DATE= CONVERT(DATE, SESSION_CONTEXT(N'startDate03'));
-        INSERT INTO [User]
-        VALUES
-        (@email_address, 
-         'The Netherlands', 
-         'Test user', 
-         'Delete', 
-         'this user', 
-         'M', 
-         NULL
-        );
-        INSERT INTO User_Subscription
-        VALUES
-        (@email_address, 
-         'The Netherlands', 
-         'Basic', 
-         'Basic', 
-         @startDate01, 
-         @endDate01, 
-         3.00
-        );
-        INSERT INTO User_Subscription
-        VALUES
-        (@email_address, 
-         'The Netherlands', 
-         'Basic', 
-         'Basic', 
-         @startDate02, 
-         @endDate02, 
-         3.00
-        );
-        INSERT INTO User_Subscription
-        VALUES
-        (@email_address, 
-         'The Netherlands', 
-         'Basic', 
-         'Basic', 
-         @startDate03, 
-         NULL, 
-         3.00
-        );
-    END;
+BEGIN
+    SET NOCOUNT ON;
+    INSERT INTO [User]
+    VALUES
+    ('test@test.nl',
+     'The Netherlands',
+     'Test user',
+     'Delete',
+     'this user',
+     'M',
+     NULL
+    );
+    INSERT INTO User_Subscription
+    VALUES
+    ('test@test.nl',
+     'The Netherlands',
+     'Basic',
+     'Basic',
+     '2017-03-01',
+     '2018-03-01',
+     3.00
+    );
+    INSERT INTO User_Subscription
+    VALUES
+    ('test@test.nl',
+     'The Netherlands',
+     'Basic',
+     'Basic',
+     '2018-05-01',
+     '2019-05-01',
+     3.00
+    );
+    INSERT INTO User_Subscription
+    VALUES
+    ('test@test.nl',
+     'The Netherlands',
+     'Basic',
+     'Basic',
+     '2019-06-01',
+     NULL,
+     3.00
+    );
+END;
 GO
 
 --  --------------------------------------------------------
@@ -207,7 +182,7 @@ ROLLBACK TRANSACTION;
 BEGIN TRANSACTION;
 EXEC SP_InsertDemoData;
 DELETE FROM User_Subscription
-WHERE subscription_startdate = CONVERT(DATE, SESSION_CONTEXT(N'startDate03'))
+WHERE subscription_startdate = '2019-06-01'
       AND subscription_enddate IS NULL;
 EXEC SP_UserSubscriptionInsert 'test@test.nl',  'The Netherlands', 'Basic', 'Basic', '2019-06-05', '2019-07-01', 3.00
 ROLLBACK TRANSACTION;
