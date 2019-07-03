@@ -48,8 +48,7 @@ IF NOT EXISTS (SELECT *
 		WHERE product_type = 'Game')
 BEGIN
 	INSERT INTO Genre
-	VALUES ('No genre allocated', 'Game')
-		, ('Action', 'Game')
+	VALUES ('Action', 'Game')
 		, ('Action-Adventure', 'Game')
 		, ('Adventure', 'Game')
 		, ('MMO', 'Game')
