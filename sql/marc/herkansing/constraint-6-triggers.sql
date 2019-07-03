@@ -14,37 +14,12 @@ BEGIN
 	DROP CONSTRAINT FK_PRODUCT__PRODUCT_G_PRODUCT
 END;
 
-IF NOT EXISTS (SELECT * 
-	FROM Genre 
-	WHERE genre_name = 'No genre allocated') 
-BEGIN
-	INSERT INTO Genre VALUES ('No genre allocated')
-END;
-
-IF NOT EXISTS (SELECT * 
-	FROM INFORMATION_SCHEMA.TABLES 
-    WHERE TABLE_NAME = 'Genre_Game')
-BEGIN
-    CREATE TABLE Genre_Game (
-	genre_name GENRE NOT NULL PRIMARY KEY
-)
-END;
-
 IF NOT EXISTS(SELECT 1 FROM sys.columns 
           WHERE Name = N'product_type'
           AND Object_ID = Object_ID(N'dbo.Genre'))
 BEGIN
 	ALTER TABLE Genre
 	ADD product_type TYPE
-END;
-
-IF NOT EXISTS (SELECT * 
-		FROM Genre 
-		WHERE genre_name = 'No genre allocated' 
-			AND product_type = 'Movie')
-BEGIN
-	INSERT INTO Genre
-	VALUES ('No genre allocated', 'Movie')
 END;
 
 IF EXISTS (SELECT * 
