@@ -131,13 +131,9 @@ go
 -- [11] Eén geldige genre toevoegen aan Movie en één geldige genre toevoegen aan Game
 -- [12] Twee geldige genres toevoegen aan Movie en twee geldige genres toevoegen aan Game
 -- [13] Genre van Movie updaten naar genre van Game
--- [14] Twee genres van Movie updaten naar twee genres van Game
--- [15] Genre van Game updaten naar genre van Movie
--- [16] Twee genres van Game updaten naar twee genres van Movie
--- [17] Genre van Movie updaten naar genre van Movie
--- [18] Twee genres van Movie updaten naar twee genres van Movie
--- [19] Genre van Game updaten naar genre van Game
--- [20] Twee genres van Game updaten naar twee genres van Game
+-- [14] Genre van Game updaten naar genre van Movie
+-- [15] Genre van Movie updaten naar genre van Movie
+-- [16] Genre van Game updaten naar genre van Game
 
 --  --------------------------------------------------------
 --  Testscenario's
@@ -294,45 +290,59 @@ ROLLBACK TRANSACTION;
 --  --------------------------------------------------------
 -- [Scenario 13] : Genre van Movie updaten naar genre van Game
 -- Result: Throw Error
+BEGIN TRANSACTION;
+
+UPDATE Product_Genre
+SET genre_name = 'MMO' 
+WHERE product_id = 2 
+	AND genre_name = 'Comedy'
+
+ROLLBACK TRANSACTION;
 
 --  --------------------------------------------------------
 --  Testscenario's
 --  --------------------------------------------------------
--- [Scenario 14] : Twee genres van Movie updaten naar twee genres van Game
+-- [Scenario 14] : Genre van Game updaten naar genre van Movie
 -- Result: Throw Error
+BEGIN TRANSACTION;
+
+-- Testdata aanmaken
+INSERT INTO Product_Genre
+VALUES (412363, 'Role-playing')
+
+UPDATE Product_Genre
+SET genre_name = 'Horror' 
+WHERE product_id = 412363
+
+ROLLBACK TRANSACTION;
 
 --  --------------------------------------------------------
 --  Testscenario's
 --  --------------------------------------------------------
--- [Scenario 15] : Genre van Game updaten naar genre van Movie
--- Result: Throw Error
-
---  --------------------------------------------------------
---  Testscenario's
---  --------------------------------------------------------
--- [Scenario 16] : Twee genres van Game updaten naar twee genres van Movie
--- Result: Throw Error
-
---  --------------------------------------------------------
---  Testscenario's
---  --------------------------------------------------------
--- [Scenario 17] : Genre van Movie updaten naar genre van Movie
+-- [Scenario 15] : Genre van Movie updaten naar genre van Movie
 -- Result: Success
+BEGIN TRANSACTION;
+
+UPDATE Product_Genre
+SET genre_name = 'Horror' 
+WHERE product_id = 2 
+	AND genre_name = 'Comedy'
+
+ROLLBACK TRANSACTION;
 
 --  --------------------------------------------------------
 --  Testscenario's
 --  --------------------------------------------------------
--- [Scenario 18] : Twee genres van Movie updaten naar twee genres van Movie
+-- [Scenario 16] : Genre van Game updaten naar genre van Game
 -- Result: Success
+BEGIN TRANSACTION;
 
---  --------------------------------------------------------
---  Testscenario's
---  --------------------------------------------------------
--- [Scenario 19] : Genre van Game updaten naar genre van Game
--- Result: Success
+-- Testdata aanmaken
+INSERT INTO Product_Genre
+VALUES (412363, 'Role-playing')
 
---  --------------------------------------------------------
---  Testscenario's
---  --------------------------------------------------------
--- [Scenario 20] : Twee genres van Game updaten naar twee genres van Game
--- Result: Success
+UPDATE Product_Genre
+SET genre_name = 'MMO' 
+WHERE product_id = 412363
+
+ROLLBACK TRANSACTION;
