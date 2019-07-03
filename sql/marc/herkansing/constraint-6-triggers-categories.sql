@@ -12,6 +12,7 @@ BEGIN
 	ALTER TABLE Category
 	ADD product_type TYPE
 END;
+go
 
 IF EXISTS (SELECT * 
 	FROM Category 
@@ -21,10 +22,6 @@ BEGIN
 	SET product_type = 'Movie'
 END;
 go 
-
-ALTER TABLE Review
-DROP CONSTRAINT IF EXISTS [FK_REVIEW_C_REVIEWCAT_CATEGORY]
-go
 
 IF NOT EXISTS (SELECT * 
 		FROM Category 
@@ -225,10 +222,6 @@ INSERT INTO Review_Category
 VALUES (2, 'info@info.nl', 'Cinematography ', 8), (412363, 'info@info.nl', 'Gameplay', 8)
 
 ROLLBACK TRANSACTION;
-
-
-
-
 
 --  --------------------------------------------------------
 --  Testscenario's
