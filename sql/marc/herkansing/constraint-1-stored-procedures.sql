@@ -1,7 +1,3 @@
---  --------------------------------------------------------
---  Constraint 1 - Stored Procedures 
---  --------------------------------------------------------
--- Een film of spel hoort altijd bij minimaal één genre.
 USE odisee
 go
 
