@@ -13,6 +13,7 @@ BEGIN
 	ALTER TABLE Product_Genre
 	DROP CONSTRAINT FK_PRODUCT__PRODUCT_G_PRODUCT
 END;
+go
 
 IF NOT EXISTS(SELECT 1 FROM sys.columns 
           WHERE Name = N'product_type'
@@ -21,6 +22,7 @@ BEGIN
 	ALTER TABLE Genre
 	ADD product_type TYPE
 END;
+go
 
 IF EXISTS (SELECT * 
 	FROM Genre 
