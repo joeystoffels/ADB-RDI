@@ -1,5 +1,5 @@
 --  --------------------------------------------------------
---  Constraint 1 - Triggers 
+--  Constraint 6 - Triggers 
 --  --------------------------------------------------------
 -- Genres voor films en spellen zijn verschillend, deze mogen niet bij het verkeerde media-item gebruikt worden. 
 -- Hetzelfde geld voor Review aspecten.
