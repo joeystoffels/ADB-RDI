@@ -120,19 +120,14 @@ ALTER TABLE [dbo].[Invoice] CHECK CONSTRAINT [FK_INVOICE_USER_OF_I_USER]
 GO
 
 
-
-
-
 --  --------------------------------------------------------
 --  Create index
 --  --------------------------------------------------------
--- CREATE NONCLUSTERED INDEX IX_User_emailaddress_countryname2 ON [Purchase](email_address) INCLUDE(purchase_date);
-
-
+CREATE NONCLUSTERED INDEX IX_User_emailaddress_countryname ON [User](email_address) INCLUDE(country_name);
+CREATE NONCLUSTERED INDEX IX_Purchase_emailaddress_purchase_date ON [Purchase](email_address) INCLUDE(purchase_date);
 
 --  --------------------------------------------------------
 --  Remove index
 --  --------------------------------------------------------
-
--- DROP INDEX IX_User_emailaddress_countryname ON [User];
--- DROP INDEX IX_User_emailaddress_countryname2 ON [Purchase];
+DROP INDEX IX_User_emailaddress_countryname ON [User];
+DROP INDEX IX_Purchase_emailaddress_purchase_date ON [Purchase];

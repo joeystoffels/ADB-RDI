@@ -47,8 +47,6 @@ GO
 -- SQL Server parse and compile time:
 --    CPU time = 0 ms, elapsed time = 0 ms.
 
-
-
 --  --------------------------------------------------------
 --  Create index
 --  --------------------------------------------------------

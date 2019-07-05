@@ -109,18 +109,13 @@ GO
 -- SQL Server parse and compile time:
 --    CPU time = 0 ms, elapsed time = 0 ms.
 
-   
-
 --  --------------------------------------------------------
 --  Create index
 --  --------------------------------------------------------
 -- CREATE NONCLUSTERED INDEX IX_User_emailaddress_countryname2 ON [Purchase](email_address) INCLUDE(purchase_date);
 
-
-
 --  --------------------------------------------------------
 --  Remove index
 --  --------------------------------------------------------
-
 -- DROP INDEX IX_User_emailaddress_countryname ON [User];
 -- DROP INDEX IX_User_emailaddress_countryname2 ON [Purchase];

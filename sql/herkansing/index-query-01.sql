@@ -58,8 +58,6 @@ GO
 
 -- Drop constraints
 
-
-
 ALTER TABLE [dbo].[Review] DROP CONSTRAINT [FK_REVIEW_PRODUCT_O_PRODUCT];
 GO
 ALTER TABLE [dbo].[Purchase] DROP CONSTRAINT [FK_PURCHASE_PRODUCT_O_PRODUCT];
@@ -75,7 +73,6 @@ GO
 ALTER TABLE [dbo].[Cast] DROP CONSTRAINT [FK_CAST_CAST_OF_M_PRODUCT]
 GO
 
-
 -- Finally we can delete PK_PRODUCT
 ALTER TABLE Product DROP CONSTRAINT PK_PRODUCT;
 GO
@@ -84,63 +81,40 @@ GO
 ALTER TABLE Product
 ADD CONSTRAINT PK_PRODUCT PRIMARY KEY CLUSTERED(product_id);
 
-
-
 ALTER TABLE [dbo].[Review]
 WITH CHECK
 ADD CONSTRAINT [FK_REVIEW_PRODUCT_O_PRODUCT] FOREIGN KEY([product_id]) REFERENCES [dbo].[Product]([product_id]);
 GO
---ALTER TABLE [dbo].[Review] CHECK CONSTRAINT [FK_REVIEW_PRODUCT_O_PRODUCT];
---GO
-
 
 ALTER TABLE [dbo].[Purchase]
 WITH CHECK
 ADD CONSTRAINT [FK_PURCHASE_PRODUCT_O_PRODUCT] FOREIGN KEY([product_id]) REFERENCES [dbo].[Product]([product_id]);
 GO
---ALTER TABLE [dbo].[Purchase] CHECK CONSTRAINT [FK_PURCHASE_PRODUCT_O_PRODUCT];
---GO
-
 
 ALTER TABLE [dbo].[Product_Genre]
 WITH CHECK
 ADD CONSTRAINT [FK_PRODUCT__PRODUCT_G_PRODUCT] FOREIGN KEY([product_id]) REFERENCES [dbo].[Product]([product_id]);
 GO
---ALTER TABLE [dbo].[Product_Genre] CHECK CONSTRAINT [FK_PRODUCT__PRODUCT_G_PRODUCT];
---GO
-
 
 ALTER TABLE [dbo].[Product]
 WITH CHECK
 ADD CONSTRAINT [FK_PRODUCT_PREVIOUS__PRODUCT] FOREIGN KEY([previous_product_id]) REFERENCES [dbo].[Product]([product_id]);
 GO
---ALTER TABLE [dbo].[Product] CHECK CONSTRAINT [FK_PRODUCT_PREVIOUS__PRODUCT];
---GO
-
 
 ALTER TABLE [dbo].[Movie_Director]
 WITH CHECK
 ADD CONSTRAINT [FK_MOVIE_DI_DIRECTS_PRODUCT] FOREIGN KEY([product_id]) REFERENCES [dbo].[Product]([product_id]);
 GO
---ALTER TABLE [dbo].[Movie_Director] CHECK CONSTRAINT [FK_MOVIE_DI_DIRECTS_PRODUCT];
---GO
 
 
 ALTER TABLE [dbo].[Default_Game_Price]
 WITH CHECK
 ADD CONSTRAINT [FK_DEFAULT__GAMEDEFAU_PRODUCT] FOREIGN KEY([product_id]) REFERENCES [dbo].[Product]([product_id]);
 GO
---ALTER TABLE [dbo].[Default_Game_Price] CHECK CONSTRAINT [FK_DEFAULT__GAMEDEFAU_PRODUCT];
---GO
 
 ALTER TABLE [dbo].[Cast]  WITH CHECK ADD  CONSTRAINT [FK_CAST_CAST_OF_M_PRODUCT] FOREIGN KEY([product_id])
 REFERENCES [dbo].[Product] ([product_id])
 GO
---ALTER TABLE [dbo].[Cast] CHECK CONSTRAINT [FK_CAST_CAST_OF_M_PRODUCT]
---GO
-
-
-
 
 --  --------------------------------------------------------
 --  Create index
@@ -152,5 +126,4 @@ CREATE NONCLUSTERED INDEX IX_Product_productid_title ON Product
 --  --------------------------------------------------------
 --  Remove index
 --  --------------------------------------------------------
-
 DROP INDEX IX_Product_productid_title ON Product;
