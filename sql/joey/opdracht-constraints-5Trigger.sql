@@ -31,7 +31,7 @@ BEGIN
 			WHERE RC.category_name = 'Acting'
 			AND RC.score IS NOT NULL) < (SELECT COUNT(*) FROM Inserted)
 
-		THROW 50001, 'Score for category Acting is missing', 1;
+		THROW 55001, 'Score for category Acting is missing', 1;
 
 		IF (
 			SELECT COUNT(*)
@@ -41,7 +41,7 @@ BEGIN
 			WHERE RC.category_name = 'Plot'
 			AND RC.score IS NOT NULL) < (SELECT COUNT(*) FROM Inserted)
 
-		THROW 50002, 'Score for category Plot is missing', 1;
+		THROW 55002, 'Score for category Plot is missing', 1;
 
 		IF (
 			SELECT COUNT(*)
@@ -52,7 +52,7 @@ BEGIN
 			OR RC.category_name = 'Music and Sound'
 			AND RC.score IS NOT NULL) < (SELECT COUNT(*) FROM Inserted)
 
-		THROW 50003, 'Score for category Cinematography or Music and Sound is missing', 1;
+		THROW 55003, 'Score for category Cinematography or Music and Sound is missing', 1;
 
 	END TRY
 	BEGIN CATCH
