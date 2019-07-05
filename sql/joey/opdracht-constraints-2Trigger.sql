@@ -20,7 +20,7 @@ BEGIN
 	-- Should not process if there are no Movie types inserted.
 	IF NOT EXISTS (SELECT * FROM inserted WHERE product_type = 'Movie') RETURN;
 
-	-- Should not process when a previous_product_id exists.
+	-- Should not process when no previous_product_id exists.
 	IF NOT EXISTS (SELECT * FROM inserted WHERE previous_product_id IS NOT NULL) RETURN;
 
 	BEGIN TRY
@@ -31,7 +31,7 @@ BEGIN
 			FROM inserted
 			WHERE product_type != 'Movie')
 
-		THROW 50001, 'Batch insert contains non-Movie type(s)!', 1;
+		THROW 52001, 'Batch insert contains non-Movie type(s)!', 1;
 
 		IF EXISTS (
 			SELECT *
@@ -39,7 +39,7 @@ BEGIN
 			INNER JOIN inserted I ON P.product_id = I.previous_product_id
 			WHERE P.product_type != 'Movie')
 
-		THROW 50002, 'Previous part is not of type Movie', 1;
+		THROW 52002, 'Previous part is not of type Movie', 1;
 
 		IF EXISTS (
 			SELECT *
@@ -47,7 +47,7 @@ BEGIN
 			INNER JOIN inserted I ON P.product_id = I.previous_product_id
 			WHERE P.publication_year >= I.publication_year)
 
-		THROW 50003, 'Publication_year of previous part is after the inserted/updated product publication year!', 1;
+		THROW 52003, 'Publication_year of previous part is after the inserted/updated product publication year!', 1;
 
 	END TRY
 	BEGIN CATCH
@@ -65,9 +65,27 @@ END;
 --  --------------------------------------------------------
 --  Testscenario's
 --  --------------------------------------------------------
+-- [01] Movie toevoegen met publication_year voor het publication_year van zijn previous_part
+-- [02] Movie toevoegen met publication_year na het publication_year van zijn previous_part
+-- [03] Product_id updaten met product_id waarbij publication_year voor het publication_year van zijn previous_part ligt
+-- [04] Product_id updaten met product_id waarbij publication_year na het publication_year van zijn previous_part ligt
+-- [05] Movie toevoegen met hetzelfde publication_year als het publication_year van zijn previous_part
+-- [06] Product_id updaten met product_id waarbij publication_year hetzelfde is als het publication_year van zijn previous_part
+-- [07] Twee movies toevoegen, eerste heeft zelfde publication_year als previous_part
+-- [08] Twee movies toevoegen, tweede heeft publication_year na het publication_year van zijn previous_part
+-- [09] Twee movies toevoegen, beide met publication_year na het publication_year van zijn previous_part
+-- [10] Movie toevoegen met previous_part als product_type 'Game'
+-- [11] Game toevoegen
+-- [12] Movie toevoegen met geen previous_part
+-- [13] Movie en game toevoegen
+-- [14] Twee movies toevoegen, tweede heeft geen previous_part
+-- [15] Movie en game toevoegen, game bevat geen previous_part
+-- [16] Movie en game toevoegen, beide zonder previous part
+
+
 -- Scenario 01
 -- Should fail because its publication year is before 1999
--- Result: Throw error 50003
+-- Result: Throw error 52003
 BEGIN TRANSACTION;
 INSERT INTO Product
 VALUES	(9999998, 'Movie', 345635, 'Star Wars Latest', null, null, 2.00, 1998, null, null, null)
@@ -202,5 +220,15 @@ ROLLBACK TRANSACTION;
 BEGIN TRANSACTION;
 INSERT INTO Product
 VALUES	(9999999, 'Movie', 345635, 'Star Wars Latest', null, null, 2.00, 2000, null, null, null),
+		(9999998, 'Game', null, 'Star Wars Latest', null, null, 2.00, 2010, null, null, null)
+ROLLBACK TRANSACTION;
+
+
+-- Scenario 16
+-- Should succeed because both entries have no previous_type
+-- Result: Success
+BEGIN TRANSACTION;
+INSERT INTO Product
+VALUES	(9999999, 'Movie', null, 'Star Wars Latest', null, null, 2.00, 2000, null, null, null),
 		(9999998, 'Game', null, 'Star Wars Latest', null, null, 2.00, 2010, null, null, null)
 ROLLBACK TRANSACTION;
