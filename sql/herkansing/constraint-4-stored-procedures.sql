@@ -24,7 +24,7 @@ AS
             FROM User_Subscription AS US
             WHERE @purchase_date BETWEEN US.subscription_startdate AND ISNULL(subscription_enddate, DATEADD(year, 100, @purchase_date))
         )
-            THROW 50001, 'Product(s) can not be purchased outside a subscription period', 1;
+            THROW 54001, 'Product(s) can not be purchased outside a subscription period', 1;
         INSERT INTO Purchase
         VALUES
         (@productId, 

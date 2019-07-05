@@ -20,7 +20,6 @@ AS
          )
              RETURN;
          BEGIN TRY
-             PRINT 'In try block';
              IF EXISTS
              (
                  SELECT 'Overlap'
@@ -51,15 +50,13 @@ AS
                  ) AS OL
                  WHERE OL.OverLapping = 'yes'
              )
-                 THROW 50002, 'Inserted subscription(s) overlaps an excisting subscription period.', 1;
-             PRINT 'Success';
+                 THROW 53002, 'Inserted subscription(s) overlaps an excisting subscription period.', 1;
          END TRY
          BEGIN CATCH
              PRINT 'In catch block';
              THROW; -- Using TROW handles ROLLBACK and bubbles up the thrown error.
          END CATCH;
      END;
-         PRINT 'Success1';
 GO
 
 --  --------------------------------------------------------

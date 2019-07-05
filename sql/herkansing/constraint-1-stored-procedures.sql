@@ -17,7 +17,7 @@ END;
 go
 
 --  --------------------------------------------------------
---  Stored Procedure
+--  Stored Procedure SP_ProductGenreInsert
 --  --------------------------------------------------------
 IF EXISTS (SELECT * FROM sys.objects WHERE [name] = 'SP_ProductGenreInsert' AND [type] = 'P')
 BEGIN
@@ -68,7 +68,7 @@ AS
 go
 
 --  --------------------------------------------------------
---  Stored Procedure
+--  Stored Procedure SP_ProductGenreDelete
 --  --------------------------------------------------------
 IF EXISTS (SELECT * FROM sys.objects WHERE [name] = 'SP_ProductGenreDelete' AND [type] = 'P')
 BEGIN
@@ -115,7 +115,7 @@ AS
 go
 
 --  --------------------------------------------------------
---  Stored Procedure
+--  Stored Procedure SP_ProductInsert
 --  --------------------------------------------------------
 IF EXISTS (SELECT * FROM sys.objects WHERE [name] = 'SP_ProductInsert' AND [type] = 'P')
 BEGIN

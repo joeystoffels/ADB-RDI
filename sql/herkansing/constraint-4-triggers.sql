@@ -19,9 +19,7 @@ AS
              FROM inserted
          )
              RETURN;
-         BEGIN TRANSACTION;
          BEGIN TRY
---              PRINT 'In try block';
              IF EXISTS
              (
                  SELECT 'No Subscription'
@@ -34,15 +32,12 @@ AS
                        AND ISNULL(subscription_enddate, DATEADD(year, 100, I.purchase_date))
                  )
              )
-                 THROW 50001, 'Product(s) can not be purchased outside a subscription period', 1;
-             PRINT 'Success';
+                 THROW 54002, 'Product(s) can not be purchased outside a subscription period', 1;
          END TRY
          BEGIN CATCH
---              PRINT 'In catch block';
              THROW; -- Using TROW handles ROLLBACK and bubbles up the thrown error.
          END CATCH;
      END;
-         COMMIT TRANSACTION;
 GO
 
 --  --------------------------------------------------------

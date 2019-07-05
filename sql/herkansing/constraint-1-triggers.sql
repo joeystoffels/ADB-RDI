@@ -17,8 +17,8 @@ END;
 go
 
 --  --------------------------------------------------------
---  Trigger
---  --------------------------------------------------------
+--  Trigger ProductGenre_AI
+--  -------------------- ------------------------------------
 IF EXISTS (SELECT * FROM sys.objects WHERE [name] = 'ProductGenre_AI' AND [type] = 'TR')
 BEGIN
 	DROP TRIGGER [dbo].[ProductGenre_AI];
@@ -71,7 +71,7 @@ BEGIN
 go
 
 --  --------------------------------------------------------
---  Trigger
+--  Trigger ProductGenre_AD
 --  --------------------------------------------------------
 IF EXISTS (SELECT * FROM sys.objects WHERE [name] = 'ProductGenre_AD' AND [type] = 'TR')
 BEGIN

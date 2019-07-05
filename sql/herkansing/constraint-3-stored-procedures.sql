@@ -34,7 +34,7 @@ AS
                OR ISNULL(subscription_enddate, DATEADD(year, 100, GETDATE())) >= @startDate
                 AND email_address = @email_address
         )
-        THROW 50001, 'Inserted subscription(s) overlaps an excisting subscription period.', 1;
+        THROW 53001, 'Inserted subscription(s) overlaps an excisting subscription period.', 1;
 
     INSERT INTO User_Subscription
     VALUES
@@ -52,7 +52,6 @@ AS
         IF XACT_STATE() <> 0 ROLLBACK TRANSACTION;
         THROW;
     END CATCH
-
     COMMIT TRANSACTION;
 GO
 
