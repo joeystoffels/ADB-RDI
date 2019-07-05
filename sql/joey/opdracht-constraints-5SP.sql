@@ -31,14 +31,6 @@ AS
 	BEGIN TRY
 
 		IF NOT EXISTS (
-			SELECT * 
-			FROM Review_Category RC
-			WHERE RC.product_id = @ProductID
-			AND RC.email_address = @EmailAddress)
-
-		THROW 50001, 'No matching scores found for any category.', 1;
-
-		IF NOT EXISTS (
 			SELECT *
 			FROM Review_Category RC
 			WHERE RC.product_id = @ProductID
@@ -46,7 +38,7 @@ AS
 			AND RC.category_name = 'Acting'
 			AND RC.score IS NOT NULL)
 
-		THROW 50002, 'Score for category Acting is missing', 1;
+		THROW 55001, 'Score for category Acting is missing', 1;
 
 		IF NOT EXISTS (
 			SELECT *
@@ -56,7 +48,7 @@ AS
 			AND RC.category_name = 'Plot'
 			AND RC.score IS NOT NULL)
 
-		THROW 50003, 'Score for category Plot is missing', 1;
+		THROW 55002, 'Score for category Plot is missing', 1;
 
 		IF NOT EXISTS (
 			SELECT *
@@ -67,7 +59,7 @@ AS
 			OR RC.category_name = 'Music and Sound'
 			AND RC.score IS NOT NULL)
 
-		THROW 50004, 'Score for category Cinematography or Music and Sound is missing', 1;
+		THROW 55003, 'Score for category Cinematography or Music and Sound is missing', 1;
 		INSERT INTO Review
 		VALUES (@ProductId, @EmailAddress,
 				@ReviewDate, @Description,
@@ -80,74 +72,92 @@ AS
 		THROW;
 	END CATCH
 
-	COMMIT TRANSACTION;
 GO
 
 
---  --------------------------------------------------------
---  Testscenario's
---  --------------------------------------------------------
+----------------------------------------------------------
+-- Testscenario's
+----------------------------------------------------------
+-- [01] Review toevoegen zonder scores
+-- [02] Review toevoegen met score voor acting, zonder score voor plot
+-- [03] Review toevoegen met score voor plot, zonder score voor acting
+-- [04] Review toevoegen met score voor acting en plot
+-- [05] Review toevoegen met score voor acting, plot en cinematography
+-- [06] Review toevoegen met score voor acting, plot en music and sound
+
 -- Scenario 01
--- SP insert tests
--- Info: Execute the following statements one by one in sequence to check the SP.
-
-BEGIN TRANSACTION;
--- No scores given for any category, should throw error code 50001
-DECLARE @DATE DATE = GETDATE();
+-- No score given for acting
+-- Result: Throw error 55001
+BEGIN TRANSACTION
+DECLARE @DATE DATETIME = GETDATE();
 EXEC USP_Review_Insert 345635, 'joey.stoffels@gmail.com', @DATE, 'description', 8;
+ROLLBACK TRANSACTION;
 
--- Add a score for categoy Acting
+
+-- Scenario 02
+-- No score given for Plot
+-- Result: Throws error 55002
+BEGIN TRANSACTION
 INSERT INTO Review_Category
 VALUES (345635, 'joey.stoffels@gmail.com', 'Acting', 8);
 
--- No score given for Plot, should throw error code 50003
--- DECLARE @DATE DATE = GETDATE();
+DECLARE @DATE DATETIME = GETDATE();
 EXEC USP_Review_Insert 345635, 'joey.stoffels@gmail.com', @DATE, 'description', 8;
+ROLLBACK TRANSACTION;
 
--- Remove score for Acting
-DELETE FROM Review_Category
-WHERE product_id = 345635 AND category_name = 'Acting' AND email_address = 'joey.stoffels@gmail.com'
 
--- Add a score for categoy Plot
+-- Scenario 03
+-- No score given for Acting
+-- Result: Throws error 55001
+BEGIN TRANSACTION
 INSERT INTO Review_Category
 VALUES (345635, 'joey.stoffels@gmail.com', 'Plot', 8);
 
--- No score given for Acting, should throw error code 50002
--- DECLARE @DATE DATE = GETDATE();
-EXEC USP_Review_Insert 345635, 'joey.stoffels@gmail.com', @DATE, 'description', 8;
-
--- Now add a score for categoy Acting
-INSERT INTO Review_Category
-VALUES (345635, 'joey.stoffels@gmail.com', 'Acting', 8);
-
--- No score given for Music and Sound, should throw error code 50004
--- DECLARE @DATE DATE = GETDATE();
-EXEC USP_Review_Insert 345635, 'joey.stoffels@gmail.com', @DATE, 'description', 8;
-
--- Now add a score for categoy Cinematography
-INSERT INTO Review_Category
-VALUES (345635, 'joey.stoffels@gmail.com', 'Cinematography', 8);
-
--- Cinematography now present, should succeed.
--- DECLARE @DATE DATE = GETDATE();
-EXEC USP_Review_Insert 345635, 'joey.stoffels@gmail.com', @DATE, 'description', 8;
-
--- Remove added review
-DELETE FROM Review
-WHERE product_id = 345635 AND email_address = 'joey.stoffels@gmail.com';
-
--- Remove score for Cinematography
-DELETE FROM Review_Category
-WHERE product_id = 345635 AND category_name = 'Cinematography'
-
--- Add a score for categoy Music and Sound
-INSERT INTO Review_Category
-VALUES (345635, 'joey.stoffels@gmail.com', 'Music and Sound', 8);
-
--- Music and Sound now present, should succeed.
--- DECLARE @DATE DATE = GETDATE();
+DECLARE @DATE DATETIME = GETDATE();
 EXEC USP_Review_Insert 345635, 'joey.stoffels@gmail.com', @DATE, 'description', 8;
 ROLLBACK TRANSACTION;
+
+
+-- Scenario 04
+-- No score given for Music and Sound or Cinematography
+-- Result: Throws error 55003
+BEGIN TRANSACTION
+INSERT INTO Review_Category
+VALUES	(345635, 'joey.stoffels@gmail.com', 'Acting', 8),
+		(345635, 'joey.stoffels@gmail.com', 'Plot', 8);
+
+DECLARE @DATE DATETIME = GETDATE();
+EXEC USP_Review_Insert 345635, 'joey.stoffels@gmail.com', @DATE, 'description', 8;
+ROLLBACK TRANSACTION;
+
+
+-- Scenario 05
+-- All required scores available with Cinematography
+-- Result: Success
+BEGIN TRANSACTION
+INSERT INTO Review_Category
+VALUES	(345635, 'joey.stoffels@gmail.com', 'Acting', 8),
+		(345635, 'joey.stoffels@gmail.com', 'Plot', 8),
+		(345635, 'joey.stoffels@gmail.com', 'Cinematography', 8);
+
+DECLARE @DATE DATETIME = GETDATE();
+EXEC USP_Review_Insert 345635, 'joey.stoffels@gmail.com', @DATE, 'description', 8;
+ROLLBACK TRANSACTION;
+
+
+-- Scenario 06
+-- All required scores available with Music and Sound
+-- Result: Success
+BEGIN TRANSACTION
+INSERT INTO Review_Category
+VALUES	(345635, 'joey.stoffels@gmail.com', 'Acting', 8),
+		(345635, 'joey.stoffels@gmail.com', 'Plot', 8),
+		(345635, 'joey.stoffels@gmail.com', 'Music and Sound', 8);
+
+DECLARE @DATE DATETIME = GETDATE();
+EXEC USP_Review_Insert 345635, 'joey.stoffels@gmail.com', @DATE, 'description', 8;
+ROLLBACK TRANSACTION;
+
 
 --  --------------------------------------------------------
 --  Stored procedure
@@ -170,19 +180,11 @@ AS
 			SELECT *
 			FROM Review_Category RC
 			WHERE RC.product_id = @ProductID
-			AND RC.email_address = @EmailAddress)
-
-		THROW 50001, 'No matching scores found for any category.', 1;
-
-		IF NOT EXISTS (
-			SELECT *
-			FROM Review_Category RC
-			WHERE RC.product_id = @ProductID
 			AND RC.email_address = @EmailAddress
 			AND RC.category_name = 'Acting'
 			AND RC.score IS NOT NULL)
 
-		THROW 50002, 'Score for category Acting is missing', 1;
+		THROW 55001, 'Score for category Acting is missing', 1;
 
 		IF NOT EXISTS (
 			SELECT *
@@ -192,7 +194,7 @@ AS
 			AND RC.category_name = 'Plot'
 			AND RC.score IS NOT NULL)
 
-		THROW 50003, 'Score for category Plot is missing', 1;
+		THROW 55002, 'Score for category Plot is missing', 1;
 
 		IF NOT EXISTS (
 			SELECT *
@@ -203,7 +205,7 @@ AS
 			OR RC.category_name = 'Music and Sound'
 			AND RC.score IS NOT NULL)
 
-		THROW 50004, 'Score for category Cinematography or Music and Sound is missing', 1;
+		THROW 55003, 'Score for category Cinematography or Music and Sound is missing', 1;
 
 		UPDATE Review
 		SET product_id = @ProductID
@@ -217,43 +219,56 @@ AS
 		THROW;
 	END CATCH
 
-	COMMIT TRANSACTION;
 GO
 
 --  --------------------------------------------------------
 --  Testscenario's
 --  --------------------------------------------------------
--- Scenario 02
--- SP update test
--- Info: Execute the following statements one by one in sequence to check the trigger.
+-- [07] Review updaten met een product_id waar alleen plot en acting scores voor zijn
+-- [08] Review updaten met een product_id waar plot, acting en cinematography aanwezig zijn
 
-BEGIN TRANSACTION;
--- Setup testdata
+
+-- Scenario 07
+-- No score given for Music and Sound or cinematography
+-- Result: Throws error 55003
+BEGIN TRANSACTION
 INSERT INTO Review_Category
-VALUES (345635, 'joey.stoffels@gmail.com', 'Plot', 8),
-(345635, 'joey.stoffels@gmail.com', 'Acting', 8),
-(345635, 'joey.stoffels@gmail.com', 'Cinematography', 8);
+VALUES	(345635, 'joey.stoffels@gmail.com', 'Plot', 8),
+		(345635, 'joey.stoffels@gmail.com', 'Acting', 8),
+		(345635, 'joey.stoffels@gmail.com', 'Cinematography', 8);
 
 INSERT INTO Product
 VALUES	(9999998, 'Movie', null, 'testproduct', null, null, 2.00, 1998, null, null, null)
 
 INSERT INTO Review_Category
-VALUES (9999998, 'joey.stoffels@gmail.com', 'Plot', 8),
-(9999998, 'joey.stoffels@gmail.com', 'Acting', 8);
+VALUES	(9999998, 'joey.stoffels@gmail.com', 'Plot', 8),
+		(9999998, 'joey.stoffels@gmail.com', 'Acting', 8);
 
 INSERT INTO Review
-VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 5);
+VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 8);
 
--- No score given for Music and Sound or cinematography, should throw error code 50004
 EXEC USP_Review_Update_ProductId 345635, 9999998, 'joey.stoffels@gmail.com';
+ROLLBACK TRANSACTION;
 
--- Now add a Cinematography score
+-- Scenario 08
+-- All required scores available with Cinematography
+-- Result: Success
+BEGIN TRANSACTION
 INSERT INTO Review_Category
-VALUES (9999998, 'joey.stoffels@gmail.com', 'Cinematography', 8);
+VALUES	(345635, 'joey.stoffels@gmail.com', 'Plot', 8),
+		(345635, 'joey.stoffels@gmail.com', 'Acting', 8),
+		(345635, 'joey.stoffels@gmail.com', 'Cinematography', 8);
 
--- Should fail since it cannot find any matching scores with new emailaddress
+INSERT INTO Product
+VALUES	(9999998, 'Movie', null, 'testproduct', null, null, 2.00, 1998, null, null, null)
+
+INSERT INTO Review_Category
+VALUES	(9999998, 'joey.stoffels@gmail.com', 'Plot', 8),
+		(9999998, 'joey.stoffels@gmail.com', 'Acting', 8),
+		(9999998, 'joey.stoffels@gmail.com', 'Cinematography', 8);
+
+INSERT INTO Review
+VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 8);
+
 EXEC USP_Review_Update_ProductId 345635, 9999998, 'joey.stoffels@gmail.com';
-
--- Check if update succeeded
-SELECT * FROM Review WHERE product_id = 9999998;
 ROLLBACK TRANSACTION;
