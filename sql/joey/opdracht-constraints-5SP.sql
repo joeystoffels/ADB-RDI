@@ -78,9 +78,16 @@ GO
 ----------------------------------------------------------
 -- Testscenario's
 ----------------------------------------------------------
+-- [01] Review toevoegen zonder scores
+-- [02] Review toevoegen met score voor acting, zonder score voor plot
+-- [03] Review toevoegen met score voor plot, zonder score voor acting
+-- [04] Review toevoegen met score voor acting en plot
+-- [05] Review toevoegen met score voor acting, plot en cinematography
+-- [06] Review toevoegen met score voor acting, plot en music and sound
+
 -- Scenario 01
 -- No score given for acting
--- Result: Throw error 50001
+-- Result: Throw error 55001
 BEGIN TRANSACTION
 DECLARE @DATE DATETIME = GETDATE();
 EXEC USP_Review_Insert 345635, 'joey.stoffels@gmail.com', @DATE, 'description', 8;
@@ -89,7 +96,7 @@ ROLLBACK TRANSACTION;
 
 -- Scenario 02
 -- No score given for Plot
--- Result: Throws error 50002
+-- Result: Throws error 55002
 BEGIN TRANSACTION
 INSERT INTO Review_Category
 VALUES (345635, 'joey.stoffels@gmail.com', 'Acting', 8);
@@ -101,7 +108,7 @@ ROLLBACK TRANSACTION;
 
 -- Scenario 03
 -- No score given for Acting
--- Result: Throws error 50001
+-- Result: Throws error 55001
 BEGIN TRANSACTION
 INSERT INTO Review_Category
 VALUES (345635, 'joey.stoffels@gmail.com', 'Plot', 8);
@@ -113,7 +120,7 @@ ROLLBACK TRANSACTION;
 
 -- Scenario 04
 -- No score given for Music and Sound or Cinematography
--- Result: Throws error 50003
+-- Result: Throws error 55003
 BEGIN TRANSACTION
 INSERT INTO Review_Category
 VALUES	(345635, 'joey.stoffels@gmail.com', 'Acting', 8),
@@ -217,10 +224,13 @@ GO
 --  --------------------------------------------------------
 --  Testscenario's
 --  --------------------------------------------------------
+-- [07] Review updaten met een product_id waar alleen plot en acting scores voor zijn
+-- [08] Review updaten met een product_id waar plot, acting en cinematography aanwezig zijn
+
 
 -- Scenario 07
 -- No score given for Music and Sound or cinematography
--- Result: Throws error 50003
+-- Result: Throws error 55003
 BEGIN TRANSACTION
 INSERT INTO Review_Category
 VALUES	(345635, 'joey.stoffels@gmail.com', 'Plot', 8),

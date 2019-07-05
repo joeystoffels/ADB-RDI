@@ -61,19 +61,28 @@ BEGIN
 	END CATCH
 END;
 
-SELECT * FROM Review_Category
-
-DELETE FROM Review_Category  WHERE email_address = 'joey.stoffels@gmail.com'
-DELETE FROM Review_Category  WHERE product_id = 345636
-
-DELETE FROM Review WHERE email_address = 'joey.stoffels@gmail.com'
 
 ----------------------------------------------------------
 -- Testscenario's
 ----------------------------------------------------------
+-- [01] Review toevoegen zonder scores
+-- [02] Review toevoegen met score voor acting, zonder score voor plot
+-- [03] Review toevoegen met score voor plot, zonder score voor acting
+-- [04] Review toevoegen met score voor acting en plot
+-- [05] Review toevoegen met score voor acting, plot en cinematography
+-- [06] Review toevoegen met score voor acting, plot en music and sound
+-- [07] Review updaten met een product_id waar alleen plot en acting scores voor zijn
+-- [08] Review updaten met een product_id waar plot, acting en cinematography aanwezig zijn
+-- [09] Twee reviews toevoegen waarbij de tweede geen scores heeft
+-- [10] Twee reviews toevoegen waarbij de tweede geen plot score heeft
+-- [11] Twee reviews toevoegen waarbij de tweede geen cinematography of music and sound score heeft
+-- [12] Twee reviews toevoegen waarbij beide reviews de scores beschikbaar heeft
+-- [13] Twee reviews toevoegen waarbij de tweede review een ander emailadres is dan van de scores
+
+
 -- Scenario 01
 -- No score given for acting
--- Result: Throw error 50001
+-- Result: Throw error 55001
 BEGIN TRANSACTION
 INSERT INTO Review
 VALUES (345635, 'joey.stoffels@gmail.com', GETDATE(), 'description', 8);
@@ -82,7 +91,7 @@ ROLLBACK TRANSACTION;
 
 -- Scenario 02
 -- No score given for Plot
--- Result: Throws error 50002
+-- Result: Throws error 55002
 BEGIN TRANSACTION
 INSERT INTO Review_Category
 VALUES (345635, 'joey.stoffels@gmail.com', 'Acting', 8);
@@ -94,7 +103,7 @@ ROLLBACK TRANSACTION;
 
 -- Scenario 03
 -- No score given for Acting
--- Result: Throws error 50001
+-- Result: Throws error 55001
 BEGIN TRANSACTION
 INSERT INTO Review_Category
 VALUES (345635, 'joey.stoffels@gmail.com', 'Plot', 8);
@@ -106,7 +115,7 @@ ROLLBACK TRANSACTION;
 
 -- Scenario 04
 -- No score given for Music and Sound or Cinematography
--- Result: Throws error 50003
+-- Result: Throws error 55003
 BEGIN TRANSACTION
 INSERT INTO Review_Category
 VALUES	(345635, 'joey.stoffels@gmail.com', 'Acting', 8),
@@ -147,7 +156,7 @@ ROLLBACK TRANSACTION;
 
 -- Scenario 07
 -- No score given for Music and Sound or cinematography
--- Result: Throws error 50003
+-- Result: Throws error 55003
 BEGIN TRANSACTION
 INSERT INTO Review_Category
 VALUES	(345635, 'joey.stoffels@gmail.com', 'Plot', 8),
@@ -198,7 +207,7 @@ ROLLBACK TRANSACTION;
 
 -- Scenario 09
 -- No category scores available for second Review entry
--- Result: Throws error 50001
+-- Result: Throws error 55001
 BEGIN TRANSACTION
 INSERT INTO Review_Category
 VALUES	(345635, 'joey.stoffels@gmail.com', 'Acting', 8),
@@ -213,7 +222,7 @@ ROLLBACK TRANSACTION
 
 -- Scenario 10
 -- Second entry has no Plot score
--- Result: Throws error 50002
+-- Result: Throws error 55002
 BEGIN TRANSACTION
 INSERT INTO Review_Category
 VALUES	(345635, 'joey.stoffels@gmail.com', 'Acting', 8),
@@ -229,7 +238,7 @@ ROLLBACK TRANSACTION
 
 -- Scenario 11
 -- Second entry has no Cinematorgraphy or Music and Sound score
--- Result: Throws error 50003
+-- Result: Throws error 55003
 BEGIN TRANSACTION
 INSERT INTO Review_Category
 VALUES	(345635, 'joey.stoffels@gmail.com', 'Acting', 8),
@@ -264,7 +273,7 @@ ROLLBACK TRANSACTION
 
 -- Scenario 13
 -- Other emailaddress for second entry, no score found for Acting
--- Result: Throws error 50001
+-- Result: Throws error 55001
 BEGIN TRANSACTION
 INSERT INTO Review_Category
 VALUES	(345635, 'joey.stoffels@gmail.com', 'Acting', 8),
