@@ -20,6 +20,7 @@ AS
          )
              RETURN;
          BEGIN TRY
+--              PRINT 'In try block';
              IF EXISTS
              (
                  SELECT 'No Subscription'
@@ -101,13 +102,16 @@ GO
 -- [05] Film valt tussen abbonementsperiode's in
 -- [06] Film valt in een periode waarin er geen einddag bekend is.
 -- [07] Film valt in meerdere abonnementperiodes
---  --------------------------------------------------------
---  Testscenario's
---  --------------------------------------------------------
+
+-- First insert demo data
+DELETE FROM User_Subscription WHERE email_address = 'test@test.nl'
+DELETE FROM [User] WHERE email_address = 'test@test.nl'
+EXEC SP_InsertDemoData;
+
+
 -- [Scenario 01] : Film valt voor de abonnementperiode
 -- Result: Throw Error
 BEGIN TRANSACTION;
-EXEC SP_InsertDemoData;
 INSERT INTO Purchase
 VALUES
 (123123, 
@@ -117,10 +121,10 @@ VALUES
 );
 ROLLBACK TRANSACTION;
 
+
 -- [Scenario 02] : Film valt na de abonnementperiode
 -- Result: Throw Error
 BEGIN TRANSACTION;
-EXEC SP_InsertDemoData;
 INSERT INTO Purchase
 VALUES
 (123123, 
@@ -130,10 +134,10 @@ VALUES
 );
 ROLLBACK TRANSACTION;
 
+
 -- [Scenario 03] : Film valt gelijk aan de startdag van de abonnementperiode.
 -- Result: Success
 BEGIN TRANSACTION;
-EXEC SP_InsertDemoData;
 INSERT INTO Purchase
 VALUES
 (123123, 
@@ -143,10 +147,10 @@ VALUES
 );
 ROLLBACK TRANSACTION;
 
+
 -- [Scenario 04] : Film valt gelijk aan de einddag van de abonnementperiode.
 -- Result: Success
 BEGIN TRANSACTION;
-EXEC SP_InsertDemoData;
 INSERT INTO Purchase
 VALUES
 (123123, 
@@ -159,7 +163,6 @@ ROLLBACK TRANSACTION;
 -- [Scenario 05] : Film valt tussen abbonementsperiode's in.
 -- Result: Throw Error
 BEGIN TRANSACTION;
-EXEC SP_InsertDemoData;
 INSERT INTO Purchase
 VALUES
 (123123, 
@@ -169,10 +172,10 @@ VALUES
 );
 ROLLBACK TRANSACTION;
 
+
 -- [Scenario 06] : Film valt in een periode waarin er geen einddag bekend is.
 -- Result: Success
 BEGIN TRANSACTION;
-EXEC SP_InsertDemoData;
 INSERT INTO Purchase
 VALUES
 (123123, 
@@ -182,10 +185,10 @@ VALUES
 );
 ROLLBACK TRANSACTION;
 
+
 -- [Scenario 07] : Film valt in een periode waarin er geen einddag bekend is.
 -- Result: Success
 BEGIN TRANSACTION;
-EXEC SP_InsertDemoData;
 INSERT INTO Purchase
 VALUES
 (123123, 
@@ -194,13 +197,13 @@ VALUES
  3.00
 );
 ROLLBACK TRANSACTION;
+
 
 -- [Scenario 08] :
 -- Film valt tussen abbonementsperiode's in (Throw Error) &
 -- Film valt in een periode waarin er geen einddag bekend is. (Success)
 -- Result: Throw Error
 BEGIN TRANSACTION;
-EXEC SP_InsertDemoData;
 INSERT INTO Purchase
 VALUES
 (123123, 
@@ -215,12 +218,12 @@ VALUES
 );
 ROLLBACK TRANSACTION;
 
+
 -- [Scenario 09] :
 -- Film valt in een periode waarin er geen einddag bekend is. (Success)
 -- Film valt in een periode waarin er geen einddag bekend is. (Success)
--- Result: Throw Error
+-- Result: Success
 BEGIN TRANSACTION;
-EXEC SP_InsertDemoData;
 INSERT INTO Purchase
 VALUES
 (123123, 
@@ -234,6 +237,7 @@ VALUES
  3.00
 );
 ROLLBACK TRANSACTION;
+
 
 --  --------------------------------------------------------
 --  Cleanup
