@@ -16,7 +16,6 @@ CREATE PROCEDURE SP_PurchaseInsert
 )
 AS
      SET NOCOUNT, XACT_ABORT ON;
-    BEGIN TRANSACTION;
     BEGIN TRY
         IF NOT EXISTS
         (
@@ -39,7 +38,6 @@ AS
             ROLLBACK TRANSACTION;
         THROW;
     END CATCH;
-     COMMIT TRANSACTION;
 GO
 
 --  --------------------------------------------------------
@@ -123,69 +121,85 @@ EXEC SP_DeleteDemoData;
 -- [05] Film valt tussen abbonementsperiode's in
 -- [06] Film valt in een periode waarin er geen einddag bekend is.
 -- [07] Film valt in meerdere abonnementperiodes
---  --------------------------------------------------------
---  Testscenario's
---  --------------------------------------------------------
+
+
 -- [Scenario 01] : Film valt voor de abonnementperiode
 -- Result: Throw Error
 EXEC SP_InsertDemoData;
+BEGIN TRANSACTION
 EXEC SP_PurchaseInsert 
      1, 
      'test@test.nl', 
      '2010-01-01', 
      3.2;
+ROLLBACK TRANSACTION;
 EXEC SP_DeleteDemoData;
 
 
 -- [Scenario 02] : Film valt na de abonnementperiode
 -- Result: Throw Error
 EXEC SP_InsertDemoData;
+BEGIN TRANSACTION
 EXEC SP_PurchaseInsert
      1,
      'test@test.nl',
      '2019-05-15',
      3.2;
+ROLLBACK TRANSACTION;
 EXEC SP_DeleteDemoData;
+
 
 -- [Scenario 03] : Film valt gelijk aan de startdag van de abonnementperiode.
 -- Result: Success
 EXEC SP_InsertDemoData;
+BEGIN TRANSACTION
 EXEC SP_PurchaseInsert
      1,
      'test@test.nl',
      '2017-03-01',
      3.2;
+ROLLBACK TRANSACTION;
 EXEC SP_DeleteDemoData;
+
 
 -- [Scenario 04] : Film valt gelijk aan de einddag van de abonnementperiode.
 -- Result: Success
 EXEC SP_InsertDemoData;
+BEGIN TRANSACTION
 EXEC SP_PurchaseInsert
      1,
      'test@test.nl',
      '2018-03-01',
      3.2;
+ROLLBACK TRANSACTION;
 EXEC SP_DeleteDemoData;
+
 
 -- [Scenario 05] : Film valt tussen abbonementsperiode's in.
 -- Result: Throw Error
 EXEC SP_InsertDemoData;
+BEGIN TRANSACTION
 EXEC SP_PurchaseInsert
      1,
      'test@test.nl',
      '2018-04-01',
      3.2;
+ROLLBACK TRANSACTION;
 EXEC SP_DeleteDemoData;
+
 
 -- [Scenario 06] : Film valt in een periode waarin er geen einddag bekend is.
 -- Result: Success
 EXEC SP_InsertDemoData;
+BEGIN TRANSACTION
 EXEC SP_PurchaseInsert
      1,
      'test@test.nl',
      '2019-06-02',
      3.2;
+ROLLBACK TRANSACTION;
 EXEC SP_DeleteDemoData;
+
 
 --  --------------------------------------------------------
 --  Cleanup
