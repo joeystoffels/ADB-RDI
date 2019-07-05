@@ -9,7 +9,7 @@ GO
 --  --------------------------------------------------------
 CREATE PROCEDURE SP_UserSubscriptionInsert
 (
-     @email_address EMAIL,
+ @email_address EMAIL,
  @country_name COUNTRY,
  @subscription_type TYPE,
  @subscription_type_name VARCHAR(255),
@@ -108,15 +108,22 @@ GO
 --  --------------------------------------------------------
 --  Testscenario's
 --  --------------------------------------------------------
+
+-- First insert demo data
+DELETE FROM User_Subscription WHERE email_address = 'test@test.nl'
+DELETE FROM [User] WHERE email_address = 'test@test.nl'
+EXEC SP_InsertDemoData;
+
+
 -- Scenario 01:
 -- [XXXXX]
 --   [XXXXX]
 -- The enddate of the inserted subscription overlaps an startDate of an other subscription;
 -- Result: Throw Error
 BEGIN TRANSACTION;
-EXEC SP_InsertDemoData;
 EXEC SP_UserSubscriptionInsert 'test@test.nl',  'The Netherlands', 'Basic', 'Basic', '2017-02-28', '2018-02-28', 3.00
 ROLLBACK TRANSACTION;
+
 
 -- Scenario 02:
 --    [XXXXX]
@@ -124,66 +131,66 @@ ROLLBACK TRANSACTION;
 -- The startDate of the inserted subscription overlaps an endDate of an other subscription;
 -- Result: Throw Error
 BEGIN TRANSACTION;
-EXEC SP_InsertDemoData;
 EXEC SP_UserSubscriptionInsert 'test@test.nl',  'The Netherlands', 'Basic', 'Basic', '2017-03-02', '2018-03-02', 3.00
 ROLLBACK TRANSACTION;
+
 
 -- Scenario 03:
 --  [XXX]
 -- [XXXXXX]
 -- Result: Throw Error
 BEGIN TRANSACTION;
-EXEC SP_InsertDemoData;
 EXEC SP_UserSubscriptionInsert 'test@test.nl',  'The Netherlands', 'Basic', 'Basic', '2017-03-02', '2018-02-28', 3.00
 ROLLBACK TRANSACTION;
+
 
 -- Scenario 04:
 -- [XXXXXX]
 --  [XXX]
 -- Result: Throw Error
 BEGIN TRANSACTION;
-EXEC SP_InsertDemoData;
 EXEC SP_UserSubscriptionInsert 'test@test.nl',  'The Netherlands', 'Basic', 'Basic', '2017-02-28', '2018-03-02', 3.00
 ROLLBACK TRANSACTION;
+
 
 -- Scenario 05:
 --        [XXXX]
 -- [XXXX]        [XXXX]
 -- Result: Throw Error
 BEGIN TRANSACTION;
-EXEC SP_InsertDemoData;
 EXEC SP_UserSubscriptionInsert 'test@test.nl',  'The Netherlands', 'Basic', 'Basic', '2018-03-02', '2019-03-02', 3.00
 ROLLBACK TRANSACTION;
+
 
 -- Scenario 06:
 -- [XXXX]
 -- [XXXX]
 -- Result: Throw Error
 BEGIN TRANSACTION;
-EXEC SP_InsertDemoData;
 EXEC SP_UserSubscriptionInsert 'test@test.nl',  'The Netherlands', 'Basic', 'Basic', '2017-03-01', '2018-03-01', 3.00
 ROLLBACK TRANSACTION;
+
 
 -- Scenario 07:
 --       [XXXX]
 -- [XXXX ---> geen einde
 -- Result: Throw Error
 BEGIN TRANSACTION;
-EXEC SP_InsertDemoData;
 EXEC SP_UserSubscriptionInsert 'test@test.nl',  'The Netherlands', 'Basic', 'Basic', '2019-06-05', '2019-07-01', 3.00
 ROLLBACK TRANSACTION;
+
 
 -- Scenario 08:
 --       [XXXX]
 -- [XXXX] 
 -- Result: Success
 BEGIN TRANSACTION;
-EXEC SP_InsertDemoData;
 DELETE FROM User_Subscription
 WHERE subscription_startdate = '2019-06-01'
       AND subscription_enddate IS NULL;
 EXEC SP_UserSubscriptionInsert 'test@test.nl',  'The Netherlands', 'Basic', 'Basic', '2019-06-05', '2019-07-01', 3.00
 ROLLBACK TRANSACTION;
+
 
 --  --------------------------------------------------------
 --  Cleanup
