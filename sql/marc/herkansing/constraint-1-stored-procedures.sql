@@ -1,3 +1,7 @@
+--  --------------------------------------------------------
+--  Constraint 1 - Stored Procedures 
+--  --------------------------------------------------------
+-- Een film of spel hoort altijd bij minimaal één genre.
 USE odisee
 go
 
@@ -26,23 +30,21 @@ CREATE PROCEDURE SP_ProductGenreInsert
  @genre		GENRE
 )
 AS
-	BEGIN
 
 		SET NOCOUNT, XACT_ABORT ON;
 
-		IF @productId IS NULL
-		THROW 50001, 'No value is given for parameter "productId"', 1;
-
-		IF @genre IS NULL
-		THROW 50001, 'No value is given for parameter "genre"', 1;
+		BEGIN TRANSACTION;
 
 		BEGIN TRY
+
+			IF @productId IS NULL
+			THROW 51003, 'No value is given for parameter "productId"', 1;
 			
 			IF NOT EXISTS(SELECT * 
 				FROM Product 
 				WHERE product_id = @productId)
 
-			THROW 50001, 'Given product does not exist.', 1;
+			THROW 51004, 'Given product does not exist.', 1;
 
 			IF EXISTS(SELECT * 
 				FROM Product_Genre
@@ -56,13 +58,13 @@ AS
 			INSERT INTO Product_Genre 
 			VALUES (@productId, @genre)
 
+			COMMIT TRANSACTION;
+
 		END TRY
 		BEGIN CATCH
 			IF XACT_STATE() <> 0 ROLLBACK TRANSACTION;
 			THROW;
 		END CATCH
-
-	;END
 go
 
 --  --------------------------------------------------------
@@ -79,36 +81,37 @@ CREATE PROCEDURE SP_ProductGenreDelete
  @genre		GENRE
 )
 AS
-	BEGIN
 
 		SET NOCOUNT, XACT_ABORT ON;
 
-		IF @productId IS NULL
-		THROW 50001, 'No value is given for parameter "productId"', 1;
-
-		IF @genre IS NULL
-		THROW 50001, 'No value is given for parameter "genre"', 1;
+		BEGIN TRANSACTION;
 
 		BEGIN TRY
+
+			IF @productId IS NULL
+			THROW 51005, 'No value is given for parameter "productId"', 1;
+
+			IF @genre IS NULL
+			THROW 51006, 'No value is given for parameter "genre"', 1;
 			
 			IF NOT EXISTS(SELECT COUNT(*) AS numOfGenres 
 				FROM Product_Genre 
 				WHERE product_id = @productId 
 				HAVING COUNT(product_id) > 1)
 
-			THROW 50001, 'It is not possible to delete this genre. The minimum amount of genres per product is 1.', 1;
+			THROW 51007, 'It is not possible to delete this genre. The minimum amount of genres per product is 1.', 1;
 
 			DELETE FROM Product_Genre 
 			WHERE product_id = @productId
 				AND genre_name = @genre
+
+			COMMIT TRANSACTION;
 
 		END TRY
 		BEGIN CATCH
 			IF XACT_STATE() <> 0 ROLLBACK TRANSACTION;
 			THROW;
 		END CATCH
-
-	;END
 go
 
 --  --------------------------------------------------------
@@ -134,24 +137,17 @@ CREATE PROCEDURE SP_ProductInsert
  @url						VARCHAR(255)
 )
 AS
-	BEGIN
 
 		SET NOCOUNT, XACT_ABORT ON;
 
-		IF @productId IS NULL
-		THROW 50001, 'No value is given for parameter "productId"', 1;
-
-		IF @productType IS NULL
-		THROW 50001, 'No value is given for parameter "genre"', 1;
-
-		IF @title IS NULL
-		THROW 50001, 'No value is given for parameter "title"', 1;
-
-		IF @defaultPrice IS NULL
-		THROW 50001, 'No value is given for parameter "defaultPrice"', 1;
+		BEGIN TRANSACTION;
 
 		BEGIN TRY
-			
+		
+			IF @productId IS NULL
+			THROW 51008, 'No value is given for parameter "productId"', 1;
+
+
 			IF NOT EXISTS(SELECT * 
 				FROM Product_Genre 
 				WHERE product_id = @productId)
@@ -171,13 +167,13 @@ AS
 				@duration,
 				@url)
 
+			COMMIT TRANSACTION;
+
 		END TRY
 		BEGIN CATCH
 			IF XACT_STATE() <> 0 ROLLBACK TRANSACTION;
 			THROW;
 		END CATCH
-
-	;END
 go
 
 --  --------------------------------------------------------
@@ -192,20 +188,21 @@ go
 CREATE PROCEDURE SP_ProductDelete
 (@productId	ID)
 AS
-	BEGIN
 
 		SET NOCOUNT, XACT_ABORT ON;
 
-		IF @productId IS NULL
-		THROW 50001, 'No value is given for parameter "productId"', 1;
+		BEGIN TRANSACTION;
 
 		BEGIN TRY
+
+		IF @productId IS NULL
+		THROW 51009, 'No value is given for parameter "productId"', 1;
 			
 			IF NOT EXISTS(SELECT * 
 				FROM Product_Genre 
 				WHERE product_id = @productId)
 
-			THROW 50001, 'Given product does not exist.', 1;
+			THROW 51010, 'Given product does not exist.', 1;
 
 			DELETE FROM Product_Genre 
 			WHERE product_id = @productId
@@ -213,13 +210,13 @@ AS
 			DELETE FROM Product
 			WHERE product_id = @productId
 
+			COMMIT TRANSACTION;
+
 		END TRY
 		BEGIN CATCH
 			IF XACT_STATE() <> 0 ROLLBACK TRANSACTION;
 			THROW;
 		END CATCH
-
-	;END
 go
 
 --  --------------------------------------------------------
@@ -552,6 +549,7 @@ go
 --  --------------------------------------------------------
 -- [Scenario 14] : Product verwijderen, ook bijbehorende genres verwijderen
 -- Result: Success
+
 BEGIN TRANSACTION 
 
 EXEC SP_ProductDelete 2
@@ -568,6 +566,7 @@ go
 --  --------------------------------------------------------
 -- [Scenario 15] : Product verwijderen, niet bestaand product
 -- Result: Throw Error
+
 BEGIN TRANSACTION 
 
 EXEC SP_ProductDelete 999999
