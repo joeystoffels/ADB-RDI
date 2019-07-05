@@ -25,21 +25,29 @@ BEGIN
 END;
 go
 
-CREATE TRIGGER ProductGenre_AI
-ON Product_Genre
+CREATE TRIGGER ProductGenre_AI ON Product_Genre
 AFTER INSERT
 AS
 BEGIN
 	
 	SET NOCOUNT ON;
 
-	-- Controleer of er een product met dit product_id bestaat
-	IF NOT EXISTS (SELECT * 
-			FROM inserted AS i 
-				JOIN Product AS p 
-					ON i.product_id = p.product_id)
+	IF NOT EXISTS (SELECT * FROM inserted) RETURN;
 
-	THROW 50001, 'Given product does not exist.', 1;
+	BEGIN TRY
+
+		-- Controleer of er een product met dit product_id bestaat
+		IF NOT EXISTS (SELECT * 
+				FROM inserted AS i 
+					JOIN Product AS p 
+						ON i.product_id = p.product_id)
+
+		THROW 50001, 'Given product does not exist.', 1;
+
+	END TRY			 
+	BEGIN CATCH
+		THROW;
+	END CATCH
 
 	-- Verwijder standaard genre wanneer andere genre word toegevoegd
 	IF EXISTS (SELECT * 
@@ -50,7 +58,7 @@ BEGIN
 								FROM Product_Genre AS pg2 
 								WHERE pg.product_id = pg2.product_id 
 									AND pg.genre_name != 'No genre allocated')
-								)
+							)
 
 	DELETE FROM Product_Genre 
 	WHERE product_id IN (
@@ -71,21 +79,29 @@ BEGIN
 END;
 go
 
-CREATE TRIGGER ProductGenre_AD
-ON Product_Genre
+CREATE TRIGGER ProductGenre_AD ON Product_Genre
 AFTER DELETE
 AS
 BEGIN
 
 	SET NOCOUNT ON;
 
-	-- Controleer of er een product met dit product_id bestaat
-	IF EXISTS (SELECT * 
-		FROM deleted AS d 
-			JOIN Product_Genre AS pg ON d.product_id = pg.product_id 
-		HAVING COUNT(pg.genre_name) = 0)
+	IF NOT EXISTS (SELECT * FROM deleted) RETURN;
 
-	THROW 50001, 'At least one genre required. Deleting this genre(s) would result in a total of 0 genres.', 1;
+	BEGIN TRY
+
+		-- Controleer of er een product met dit product_id bestaat
+		IF EXISTS (SELECT * 
+			FROM deleted AS d 
+				JOIN Product_Genre AS pg ON d.product_id = pg.product_id 
+			HAVING COUNT(pg.genre_name) = 0)
+
+		THROW 50001, 'At least one genre required. Deleting this genre(s) would result in a total of 0 genres.', 1;
+
+	END TRY			 
+	BEGIN CATCH
+		THROW;
+	END CATCH
 
 ;END
 go
@@ -99,13 +115,14 @@ BEGIN
 END;
 go
 
-CREATE TRIGGER Product_AI
-ON Product
+CREATE TRIGGER Product_AI ON Product
 AFTER INSERT
 AS
 BEGIN
 
 	SET NOCOUNT ON;
+
+	IF NOT EXISTS (SELECT * FROM inserted) RETURN;
 
 	-- Voeg standaard genre toe wanneer er een product zonder genre wordt toegevoegd
 	IF NOT EXISTS (SELECT * 
@@ -140,7 +157,6 @@ go
 --  --------------------------------------------------------
 -- [Scenario 01] : Film toevoegen zonder genre
 -- Result: Success (standard genre added)
-
 BEGIN TRANSACTION;
 
 INSERT INTO Product (product_id, product_type, title, movie_default_price, publication_year) 
@@ -250,7 +266,6 @@ WHERE product_id = (
 
 ROLLBACK TRANSACTION;
 go
-
 --  --------------------------------------------------------
 --  Testscenario's
 --  --------------------------------------------------------
@@ -456,7 +471,6 @@ go
 -- [Scenario 10] : Alle genres van film of spel verwijderen
 -- Result: Throw Error
 
-SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
 BEGIN TRANSACTION;
 
 DELETE FROM Product_Genre
@@ -471,7 +485,6 @@ go
 -- [Scenario 11] : Eén genre van film of spel verwijderen
 -- Result: Success
 
-SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
 BEGIN TRANSACTION;
 
 DELETE FROM Product_Genre
