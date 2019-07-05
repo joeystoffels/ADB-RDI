@@ -52,7 +52,6 @@ AS
         IF XACT_STATE() <> 0 ROLLBACK TRANSACTION;
         THROW;
     END CATCH
-    COMMIT TRANSACTION;
 GO
 
 --  --------------------------------------------------------
