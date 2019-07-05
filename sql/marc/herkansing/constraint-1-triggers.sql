@@ -42,7 +42,7 @@ BEGIN
 					JOIN Product AS p 
 						ON i.product_id = p.product_id)
 
-		THROW 50001, 'Given product does not exist.', 1;
+		THROW 51001, 'Given product does not exist.', 1;
 
 	END TRY			 
 	BEGIN CATCH
@@ -96,7 +96,7 @@ BEGIN
 				JOIN Product_Genre AS pg ON d.product_id = pg.product_id 
 			HAVING COUNT(pg.genre_name) = 0)
 
-		THROW 50001, 'At least one genre required. Deleting this genre(s) would result in a total of 0 genres.', 1;
+		THROW 51002, 'At least one genre required. Deleting this genre(s) would result in a total of 0 genres.', 1;
 
 	END TRY			 
 	BEGIN CATCH
