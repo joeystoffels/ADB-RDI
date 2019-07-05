@@ -73,41 +73,39 @@ CREATE PROCEDURE SP_ProductGenreInsert
  @genre		GENRE
 )
 AS
-	BEGIN
 
 		SET NOCOUNT, XACT_ABORT ON;
 
-		IF @productId IS NULL
-		THROW 50001, 'No value is given for parameter "productId"', 1;
-
-		IF @genre IS NULL
-		THROW 50001, 'No value is given for parameter "genre"', 1;
+		BEGIN TRANSACTION;
 
 		BEGIN TRY
+
+		IF @productId IS NULL
+		THROW 56007, 'No value is given for parameter "productId"', 1;
 			
 			IF NOT EXISTS(SELECT * 
 				FROM Product 
 				WHERE product_id = @productId)
 
-			THROW 50001, 'Given product does not exist.', 1;
+			THROW 56008, 'Given product does not exist.', 1;
 
 			IF NOT EXISTS(SELECT * 
 				FROM Product AS p
 				WHERE product_id = @productId
 					AND @genre IN (SELECT genre_name FROM Genre AS g WHERE g.product_type = p.product_type))
 
-			THROW 50001, 'No valid genre for this type of product.', 1;		
+			THROW 56009, 'No valid genre for this type of product.', 1;		
 
 			INSERT INTO Product_Genre 
 			VALUES (@productId, @genre)
+
+			COMMIT TRANSACTION;
 
 		END TRY
 		BEGIN CATCH
 			IF XACT_STATE() <> 0 ROLLBACK TRANSACTION;
 			THROW;
 		END CATCH
-
-	;END
 go
 
 --  --------------------------------------------------------
@@ -125,46 +123,41 @@ CREATE PROCEDURE SP_ProductGenreUpdate
  @newGenre	GENRE
 )
 AS
-	BEGIN
 
 		SET NOCOUNT, XACT_ABORT ON;
 
-		IF @productId IS NULL
-		THROW 50001, 'No value is given for parameter "productId"', 1;
-
-		IF @oldGenre IS NULL
-		THROW 50001, 'No value is given for parameter "oldGenre"', 1;
-
-		IF @newGenre IS NULL
-		THROW 50001, 'No value is given for parameter "newGenre"', 1;
+		BEGIN TRANSACTION;
 
 		BEGIN TRY
 			
+			IF @productId IS NULL
+			THROW 56010, 'No value is given for parameter "productId"', 1;
+
 			IF NOT EXISTS(SELECT * 
 				FROM Product 
 				WHERE product_id = @productId)
 
-			THROW 50001, 'Given product does not exist.', 1;
+			THROW 56011, 'Given product does not exist.', 1;
 
 			IF NOT EXISTS(SELECT * 
 				FROM Product AS p
 				WHERE product_id = @productId
 					AND @newGenre IN (SELECT genre_name FROM Genre AS g WHERE g.product_type = p.product_type))
 
-			THROW 50001, 'No valid genre for this type of product.', 1;		
+			THROW 56012, 'No valid genre for this type of product.', 1;		
 
 			UPDATE Product_Genre
 			SET genre_name = @newGenre 
 			WHERE product_id = @productId 
 				AND genre_name = @oldGenre
+
+			COMMIT TRANSACTION;
 	
 		END TRY
 		BEGIN CATCH
 			IF XACT_STATE() <> 0 ROLLBACK TRANSACTION;
 			THROW;
 		END CATCH
-
-	;END
 go
 
 --  --------------------------------------------------------
@@ -184,6 +177,7 @@ go
 --  --------------------------------------------------------
 -- [Scenario 01] : Eén ongeldige genre toevoegen niet behorende bij product type Movie
 -- Result: Throw Error
+
 BEGIN TRANSACTION;
 
 EXEC SP_ProductGenreInsert 2, 'MMO'
@@ -195,6 +189,7 @@ ROLLBACK TRANSACTION;
 --  --------------------------------------------------------
 -- [Scenario 02] : Eén ongeldige genre toevoegen niet behorende bij product type Game
 -- Result: Throw Error
+
 BEGIN TRANSACTION;
 
 EXEC SP_ProductGenreInsert 412363, 'Horror'
@@ -206,6 +201,7 @@ ROLLBACK TRANSACTION;
 --  --------------------------------------------------------
 -- [Scenario 03] : Eén geldige genre toevoegen aan Movie
 -- Result: Success
+
 BEGIN TRANSACTION;
 
 EXEC SP_ProductGenreInsert 2, 'Fantasy'
@@ -217,6 +213,7 @@ ROLLBACK TRANSACTION;
 --  --------------------------------------------------------
 -- [Scenario 04] : Eén geldige genre toevoegen aan Game
 -- Result: Success
+
 BEGIN TRANSACTION;
 
 EXEC SP_ProductGenreInsert 412363, 'MMO'
@@ -228,6 +225,7 @@ ROLLBACK TRANSACTION;
 --  --------------------------------------------------------
 -- [Scenario 05] : Genre van Movie updaten naar genre van Game
 -- Result: Throw Error
+
 BEGIN TRANSACTION;
 
 EXEC SP_ProductGenreUpdate 2, 'Comedy', 'MMO'
@@ -239,6 +237,7 @@ ROLLBACK TRANSACTION;
 --  --------------------------------------------------------
 -- [Scenario 06] : Genre van Game updaten naar genre van Movie
 -- Result: Throw Error
+
 BEGIN TRANSACTION;
 
 -- Testdata aanmaken
@@ -253,6 +252,7 @@ ROLLBACK TRANSACTION;
 --  --------------------------------------------------------
 -- [Scenario 07] : Genre van Movie updaten naar genre van Movie
 -- Result: Success
+
 BEGIN TRANSACTION;
 
 EXEC SP_ProductGenreUpdate 2, 'MMO', 'Comedy'
@@ -264,6 +264,7 @@ ROLLBACK TRANSACTION;
 --  --------------------------------------------------------
 -- [Scenario 08] : Genre van Game updaten naar genre van Game
 -- Result: Success
+
 BEGIN TRANSACTION;
 
 -- Testdata aanmaken
