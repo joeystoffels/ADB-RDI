@@ -77,16 +77,25 @@ BEGIN
 	
 	SET NOCOUNT ON;
 
-	IF EXISTS (SELECT genre_name 
-		FROM inserted AS i
-			JOIN Product AS p 
-				ON i.product_id = p.product_id
-		WHERE i.genre_name NOT IN (SELECT genre_name 
-								   FROM Genre 
-									WHERE product_type = p.product_type)
-	)
+	IF NOT EXISTS (SELECT * FROM inserted) RETURN;
 
-	THROW 50001, 'No valid genre for this type of product.', 1;
+	BEGIN TRY
+
+		IF EXISTS (SELECT genre_name 
+			FROM inserted AS i
+				JOIN Product AS p 
+					ON i.product_id = p.product_id
+			WHERE i.genre_name NOT IN (SELECT genre_name 
+									   FROM Genre 
+										WHERE product_type = p.product_type)
+		)
+
+		THROW 56002, 'No valid genre for this type of product.', 1;
+
+	END TRY			 
+	BEGIN CATCH
+		THROW;
+	END CATCH
 
 ;END
 go
@@ -194,6 +203,7 @@ ROLLBACK TRANSACTION;
 --  --------------------------------------------------------
 -- [Scenario 07] : Eén geldige genre toevoegen aan Movie
 -- Result: Success
+
 BEGIN TRANSACTION;
 
 INSERT INTO Product_Genre
@@ -206,6 +216,7 @@ ROLLBACK TRANSACTION;
 --  --------------------------------------------------------
 -- [Scenario 08] : Twee geldige genres toevoegen aan Movie
 -- Result: Success
+
 BEGIN TRANSACTION;
 
 INSERT INTO Product_Genre
@@ -218,6 +229,7 @@ ROLLBACK TRANSACTION;
 --  --------------------------------------------------------
 -- [Scenario 09] : Eén geldige genre toevoegen aan Game
 -- Result: Success
+
 BEGIN TRANSACTION;
 
 INSERT INTO Product_Genre
@@ -230,6 +242,7 @@ ROLLBACK TRANSACTION;
 --  --------------------------------------------------------
 -- [Scenario 10] : Twee geldige genres toevoegen aan Game
 -- Result: Success
+
 BEGIN TRANSACTION;
 
 INSERT INTO Product_Genre
@@ -242,6 +255,7 @@ ROLLBACK TRANSACTION;
 --  --------------------------------------------------------
 -- [Scenario 11] : Eén geldige genre toevoegen aan Movie en één geldige genre toevoegen aan Game
 -- Result: Success
+
 BEGIN TRANSACTION;
 
 INSERT INTO Product_Genre
@@ -254,6 +268,7 @@ ROLLBACK TRANSACTION;
 --  --------------------------------------------------------
 -- [Scenario 12] : Twee geldige genres toevoegen aan Movie en twee geldige genres toevoegen aan Game
 -- Result: Success
+
 BEGIN TRANSACTION;
 
 INSERT INTO Product_Genre
@@ -266,6 +281,7 @@ ROLLBACK TRANSACTION;
 --  --------------------------------------------------------
 -- [Scenario 13] : Genre van Movie updaten naar genre van Game
 -- Result: Throw Error
+
 BEGIN TRANSACTION;
 
 UPDATE Product_Genre
@@ -280,6 +296,7 @@ ROLLBACK TRANSACTION;
 --  --------------------------------------------------------
 -- [Scenario 14] : Genre van Game updaten naar genre van Movie
 -- Result: Throw Error
+
 BEGIN TRANSACTION;
 
 -- Testdata aanmaken
@@ -297,6 +314,7 @@ ROLLBACK TRANSACTION;
 --  --------------------------------------------------------
 -- [Scenario 15] : Genre van Movie updaten naar genre van Movie
 -- Result: Success
+
 BEGIN TRANSACTION;
 
 UPDATE Product_Genre
@@ -311,6 +329,7 @@ ROLLBACK TRANSACTION;
 --  --------------------------------------------------------
 -- [Scenario 16] : Genre van Game updaten naar genre van Game
 -- Result: Success
+
 BEGIN TRANSACTION;
 
 -- Testdata aanmaken

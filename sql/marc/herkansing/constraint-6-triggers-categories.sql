@@ -51,16 +51,25 @@ BEGIN
 	
 	SET NOCOUNT ON;
 
-	IF EXISTS (SELECT category_name
-		FROM inserted AS i
-			JOIN Product AS p 
-				ON i.product_id = p.product_id
-		WHERE i.category_name NOT IN (SELECT category_name 
-									  FROM Category 
-									  WHERE product_type = p.product_type)
-	)
+	IF NOT EXISTS (SELECT * FROM inserted) RETURN;
 
-	THROW 50001, 'No valid category for this type of product.', 1;
+	BEGIN TRY
+
+		IF EXISTS (SELECT category_name
+			FROM inserted AS i
+				JOIN Product AS p 
+					ON i.product_id = p.product_id
+			WHERE i.category_name NOT IN (SELECT category_name 
+										  FROM Category 
+										  WHERE product_type = p.product_type)
+		)
+
+		THROW 56001, 'No valid category for this type of product.', 1;
+
+	END TRY			 
+	BEGIN CATCH
+		THROW;
+	END CATCH
 
 ;END
 go
@@ -168,6 +177,7 @@ ROLLBACK TRANSACTION;
 --  --------------------------------------------------------
 -- [Scenario 07] : Eén geldige review category toevoegen aan Movie
 -- Result: Success
+
 BEGIN TRANSACTION;
 
 INSERT INTO Review_Category
@@ -180,6 +190,7 @@ ROLLBACK TRANSACTION;
 --  --------------------------------------------------------
 -- [Scenario 08] : Twee geldige review categories toevoegen aan Movie
 -- Result: Success
+
 BEGIN TRANSACTION;
 
 INSERT INTO Review_Category
@@ -192,6 +203,7 @@ ROLLBACK TRANSACTION;
 --  --------------------------------------------------------
 -- [Scenario 09] : Eén geldige review category toevoegen aan Game
 -- Result: Success
+
 BEGIN TRANSACTION;
 
 INSERT INTO Review_Category
@@ -204,6 +216,7 @@ ROLLBACK TRANSACTION;
 --  --------------------------------------------------------
 -- [Scenario 10] : Twee geldige review categories toevoegen aan Game
 -- Result: Success
+
 BEGIN TRANSACTION;
 
 INSERT INTO Review_Category
@@ -216,6 +229,7 @@ ROLLBACK TRANSACTION;
 --  --------------------------------------------------------
 -- [Scenario 11] : Eén geldige review category toevoegen aan Movie en één geldige review category toevoegen aan Game
 -- Result: Success
+
 BEGIN TRANSACTION;
 
 INSERT INTO Review_Category
@@ -228,6 +242,7 @@ ROLLBACK TRANSACTION;
 --  --------------------------------------------------------
 -- [Scenario 12] : Twee geldige review categories toevoegen aan Movie en twee geldige review categories toevoegen aan Game
 -- Result: Success
+
 BEGIN TRANSACTION;
 
 INSERT INTO Review_Category
@@ -240,6 +255,7 @@ ROLLBACK TRANSACTION;
 --  --------------------------------------------------------
 -- [Scenario 13] : Review category van Movie updaten naar review category van Game
 -- Result: Throw Error
+
 BEGIN TRANSACTION;
 
 UPDATE Review_Category
@@ -254,6 +270,7 @@ ROLLBACK TRANSACTION;
 --  --------------------------------------------------------
 -- [Scenario 14] : Review category van Game updaten naar review category van Movie
 -- Result: Throw Error
+
 BEGIN TRANSACTION;
 
 -- Testdata aanmaken
@@ -272,6 +289,7 @@ ROLLBACK TRANSACTION;
 --  --------------------------------------------------------
 -- [Scenario 15] : Review category van Movie updaten naar review category van Movie
 -- Result: Success
+
 BEGIN TRANSACTION;
 
 UPDATE Review_Category
@@ -286,6 +304,7 @@ ROLLBACK TRANSACTION;
 --  --------------------------------------------------------
 -- [Scenario 16] : Review category van Game updaten naar review category van Game
 -- Result: Success
+
 BEGIN TRANSACTION;
 
 -- Testdata aanmaken
